@@ -33,8 +33,8 @@ class Franke_Regression:
 
 	    return Xs
 
-	def find_betas_OLS(self, X):
-	    return np.linalg.inv(X.T@X)@X.T@self.z
+	def find_betas_OLS(self, X, z):
+	    return np.linalg.inv(X.T@X)@X.T@z
 
 	def find_beta_Ridge(self, X, z, lamb):
 	    # Calculating beta values with ridge regression. 
@@ -54,7 +54,7 @@ class Franke_Regression:
 		return 1/len(z)*np.sum((z-z_pred)**2 )
 
 	def R2_score(self, z, z_pred):
-		z_mean = np.mean(self.z)
+		z_mean = np.mean(z)
 		return 1 - np.sum((z-z_pred)**2)/np.sum((z-z_mean)**2) 
 
 def FrankeFunction(x, y):
@@ -64,53 +64,3 @@ def FrankeFunction(x, y):
 	term4 = -0.2*np.exp(-(9*x-4)**2 - (9* y-7)**2)
 	return term1 + term2 + term3 + term4
 
-# Generate data 
-n = 100
-x = np.sort(np.random.random(n))
-y = np.sort(np.random.random(n))
-x, y = np.meshgrid(x,y)
-z = (FrankeFunction(x, y)+ 0.1* np.random.normal(n,n)).flatten()
-
-# Frankie funciton + noise
-reg = Franke_Regression()
-reg.create_desgin_matrix(x, y, 5)
-betas = reg.find_betas_OLS()
-z_pred = reg.predict_z(betas)
-
-# Make life easier, flat x and y 
-x_flat = x.flatten()
-y_flat = y.flatten()
-z_flat = z.flatten()
-
-# Creating design matrix. 
-X = create_desgin_matrix(x_flat,y_flat,5)
-nr_of_degrees = 5
-R2_scores = np.zeros(nr_of_degrees)
-MSE_scores = np.zeros(nr_of_degrees)
-
-x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x_flat, y_flat, z_flat, test_size=0.2)
-
-for degree in range(1, nr_of_degrees+1):
-    X_train = create_desgin_matrix(x_train, y_train, degree)
-    X_test = create_desgin_matrix(x_test, y_test, degree)
-
-    betas = find_betas(X_train, z_train)
-    z_pred = predict_z(X_test, betas)
-
-    R2_scores[degree - 1] = R2_score(z_test, z_pred)
-    MSE_scores[degree - 1] = MSE(z_test, z_pred)
-
-
-"""
-all_degrees = np.arange(1,nr_of_degrees+1, 1)
-
-plt.plot(all_degrees, MSE_scores, label = "MSE")
-plt.xlabel("Degree")
-plt.ylabel("MSE")
-plt.show()
-
-plt.plot(all_degrees, R2_scores, label = "R2")
-plt.xlabel("Degree")
-plt.ylabel("MSE")
-plt.show()
-"""
