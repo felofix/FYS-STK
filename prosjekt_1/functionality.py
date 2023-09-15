@@ -25,10 +25,10 @@ class Franke_Regression:
 
 	def mean_scale(self, Xs):
 	    # Scaling function.
-	    n = self.dm.shape[1]
+	    n = Xs.shape[1]
 	    
 	    for i in range(n):
-	        avg = np.mean(Xs[:, i])
+	        avg = np.mean(Xs[i, :])
 	        Xs[i, :] -= avg
 
 	    return Xs
@@ -36,7 +36,7 @@ class Franke_Regression:
 	def find_betas_OLS(self, X, z):
 	    return np.linalg.inv(X.T@X)@X.T@z
 
-	def find_beta_Ridge(self, X, z, lamb):
+	def find_betas_Ridge(self, X, z, lamb):
 	    # Calculating beta values with ridge regression. 
 	    betas = np.linalg.inv(X.T @ X + np.eye(X.shape[1])*lamb) @ X.T @ z
 	    return betas
