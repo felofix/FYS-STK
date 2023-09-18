@@ -22,7 +22,7 @@ class Franke_Regression:
 	            X[:,col_nr] = x**(i-j)*y**(j)
 	            col_nr += 1
 	    
-	    return X[:, 1:]
+	    return X
 
 	def scale(self, X_train, X_test):
 	    # Scaling function.
