@@ -5,9 +5,10 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import Lasso
+from sklearn.preprocessing import StandardScaler
 
 class Franke_Regression:
-	def create_desgin_matrix(self, x, y, order):
+	def create_design_matrix(self, x, y, order):
 	    if (len(x) != len(y)):
 	        AssertionError("x and y must have the same length!")
 
@@ -23,28 +24,16 @@ class Franke_Regression:
 	    
 	    return X 
 
-	def mean_scale(self, Xs):
+	def scale(self, Xs):
 	    # Scaling function.
-	    n = Xs.shape[1]
+	    self.scaler = StandardScaler()
+	    self.scaler.fit(Xs)
 
-	    # For storing. 
-	    scaling = np.zeros(n)
-	    
-	    for i in range(n):
-	        avg = np.mean(Xs[i, :])
-	        Xs[i, :] -= avg
-	        scaling[i] = avg
-
-	    self.scaling = scaling
-	    
-	    return Xs
+	    return self.scaler.transform(Xs)
 
 	def test_scale(self, X):
 		# Scale the same way.
-
-		for i in range(len(self.scaling)):
-			X[i, :] -= self.scaling[i]
-
+		X = self.scaler.transform(X)
 		return X
 
 	def find_betas_OLS(self, X, z):
