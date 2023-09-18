@@ -36,6 +36,8 @@ for l in range(len(lambdas)):
 		reg = Franke_Regression()
 		X_train = reg.create_desgin_matrix(x_train, y_train, degree)
 		X_scaled_train = reg.mean_scale(X_train)
+		X_test = reg.create_desgin_matrix(x_test, y_test, degree)
+		X_scaled_test = reg.test_scale(X_test) # Scaled with the same numbers. 
 
 		# Training.
 		betas = reg.find_betas_Ridge(X_scaled_train, z_train, lambdas[l])
@@ -44,8 +46,6 @@ for l in range(len(lambdas)):
 		MSE_scores_tr[degree - 1, l] = reg.MSE(z_train, z_pred)
 
 		# Test. 
-		X_test = reg.create_desgin_matrix(x_test, y_test, degree)
-		X_scaled_test = reg.test_scale(X_test) # Scaled with the same numbers. 
 		z_pred_test = reg.predict_z(X_scaled_test, betas)
 		R2_scores_te[degree - 1, l] = reg.R2_score(z_test, z_pred_test)
 		MSE_scores_te[degree - 1, l] = reg.MSE(z_test, z_pred_test)

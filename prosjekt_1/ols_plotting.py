@@ -1,4 +1,5 @@
 from functionality import *
+from sklearn.metrics import mean_squared_error
 
 # Generate data 
 n = 100
@@ -29,6 +30,7 @@ for degree in range(1, nr_of_degrees+1):
 
 	R2_scores[degree - 1] = reg.R2_score(z_test, z_pred)
 	MSE_scores[degree - 1] = reg.MSE(z_test, z_pred)
+	
 
 all_degrees = np.arange(1,nr_of_degrees+1, 1)
 plt.plot(all_degrees, MSE_scores, label = "MSE")
