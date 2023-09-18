@@ -12,7 +12,7 @@ x_flat = x.flatten()
 y_flat = y.flatten()
 z_flat = z.flatten()
 
-# Creating design matrix. 
+# create arrau
 nr_of_degrees = 5
 R2_scores = np.zeros(nr_of_degrees)
 MSE_scores = np.zeros(nr_of_degrees)
@@ -31,12 +31,13 @@ for degree in range(1, nr_of_degrees+1):
 	MSE_scores[degree - 1] = reg.MSE(z_test, z_pred)
 
 all_degrees = np.arange(1,nr_of_degrees+1, 1)
+
 plt.plot(all_degrees, MSE_scores, label = "MSE")
 plt.xlabel("Degree")
 plt.ylabel("MSE")
-plt.show()
+#plt.show()
 
 plt.plot(all_degrees, R2_scores, label = "R2")
 plt.xlabel("Degree")
 plt.ylabel("MSE")
-plt.show()
+#plt.show()
