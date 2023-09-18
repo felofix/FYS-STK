@@ -33,11 +33,11 @@ class Franke_Regression:
 	    return X_train, X_test
 
 	def find_betas_OLS(self, X, z):
-	    return np.linalg.inv(X.T@X)@X.T@z
+	    return np.linalg.pinv(X.T@X)@X.T@z
 
 	def find_betas_Ridge(self, X, z, lamb):
 	    # Calculating beta values with ridge regression. 
-	    betas = (np.linalg.inv(X.T @ X + np.eye(X.shape[1])*lamb) @ X.T) @ z
+	    betas = (np.linalg.pinv(X.T @ X + np.eye(X.shape[1])*lamb) @ X.T) @ z
 	    return betas
 
 	def create_lasso(self, alpha, X, y):
