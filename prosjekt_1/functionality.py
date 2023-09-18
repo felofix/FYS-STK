@@ -22,19 +22,15 @@ class Franke_Regression:
 	            X[:,col_nr] = x**(i-j)*y**(j)
 	            col_nr += 1
 	    
-	    return X 
+	    return X[:, 1:]
 
-	def scale(self, Xs):
+	def scale(self, X_train, X_test):
 	    # Scaling function.
-	    self.scaler = StandardScaler()
-	    self.scaler.fit(Xs)
-
-	    return self.scaler.transform(Xs)
-
-	def test_scale(self, X):
-		# Scale the same way.
-		X = self.scaler.transform(X)
-		return X
+	    scaler = StandardScaler()
+	    scaler.fit(X_train)
+	    X_train = scaler.transform(X_train)
+	    X_test = scaler.transform(X_test)
+	    return X_train, X_test
 
 	def find_betas_OLS(self, X, z):
 	    return np.linalg.inv(X.T@X)@X.T@z
@@ -54,7 +50,7 @@ class Franke_Regression:
 		return X@betas
 
 	def MSE(self, z, z_pred):
-		return 1/len(z)*np.sum((z-z_pred)**2 )
+		return 1/len(z)*np.sum((z-z_pred)**2)
 
 	def R2_score(self, z, z_pred):
 		z_mean = np.mean(z)

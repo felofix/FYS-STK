@@ -35,20 +35,19 @@ for l in range(len(lambdas)):
 	for degree in range(1, nr_of_degrees+1):
 		reg = Franke_Regression()
 		X_train = reg.create_design_matrix(x_train, y_train, degree)
-		X_scaled_train = reg.scale(X_train) # Scaled. 
 		X_test = reg.create_design_matrix(x_test, y_test, degree)
-		X_scaled_test = reg.test_scale(X_test) # Scaled with the same numbers. 
+		X_scaled_train, X_scaled_test = reg.scale(X_train, X_test) # Scaled. 
 
 		# Training.
 		betas = reg.find_betas_Ridge(X_train, z_train, lambdas[l])
 		z_pred = reg.predict_z(X_train, betas)
 		R2_scores_tr[degree - 1, l] = reg.R2_score(z_train, z_pred)
-		MSE_scores_tr[degree - 1, l] = reg.MSE(z_train, z_pred)
+		MSE_scores_tr[degree - 1, l] = mean_squared_error(z_train, z_pred)#reg.MSE(z_train, z_pred)
 
 		# Test. 
 		z_pred_test = reg.predict_z(X_test, betas)
 		R2_scores_te[degree - 1, l] = reg.R2_score(z_test, z_pred_test)
-		MSE_scores_te[degree - 1, l] = reg.MSE(z_test, z_pred_test)
+		MSE_scores_te[degree - 1, l] =  mean_squared_error(z_train, z_pred)#reg.MSE(z_test, z_pred_test)
 
 
 all_degrees = np.arange(1,nr_of_degrees+1, 1)
