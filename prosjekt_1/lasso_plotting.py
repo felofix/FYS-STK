@@ -1,5 +1,5 @@
 from functionality import *
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.linear_model import Lasso
 
 # Same results every time. 
 np.random.seed(14)
@@ -38,7 +38,8 @@ for l in range(len(lambdas)):
 		X_scaled_train, X_scaled_test = reg.scale(X_train, X_test) # Scaled. 
 		
 		# Training.
-		betas = reg.find_betas_Ridge(X_scaled_train, z_train, lambdas[l])
+		betas = reg.find_betas_Lasso(X_scaled_train, z_train, lambdas[l])
+
 		z_pred = reg.predict_z(X_scaled_train, betas) + z_train.mean()
 
 		R2_scores_tr[degree - 1, l] = reg.R2_score(z_train, z_pred)
@@ -48,8 +49,7 @@ for l in range(len(lambdas)):
 		z_pred_test = reg.predict_z(X_scaled_test, betas) + z_train.mean()
 		R2_scores_te[degree - 1, l] = reg.R2_score(z_test, z_pred_test)
 		MSE_scores_te[degree - 1, l] =  reg.MSE(z_test, z_pred_test)
-
-
+		
 all_degrees = np.arange(1,nr_of_degrees+1, 1)
 
 # Plotting training set. 
@@ -61,7 +61,7 @@ plt.legend()
 plt.grid()
 plt.xlabel("Degree")
 plt.ylabel("MSE")
-plt.savefig("plots/MSEtrainingRidge.pdf")
+plt.savefig("plots/MSEtrainingLasso.pdf")
 plt.show()
 
 for l in range(len(lambdas)):
@@ -71,7 +71,7 @@ plt.legend()
 plt.xlabel("Degree")
 plt.ylabel("R2")
 plt.grid()
-plt.savefig("plots/R2trainingRidge.pdf")
+plt.savefig("plots/R2trainingLasso.pdf")
 plt.show()
 
 # Plotting test set. 
@@ -82,7 +82,7 @@ plt.legend()
 plt.grid()
 plt.xlabel("Degree")
 plt.ylabel("MSE")
-plt.savefig("plots/MSEtestRidge.pdf")
+plt.savefig("plots/MSEtestLasso.pdf")
 plt.show()
 
 for l in range(len(lambdas)):
@@ -92,5 +92,5 @@ plt.legend()
 plt.xlabel("Degree")
 plt.ylabel("R2")
 plt.grid()
-plt.savefig("plots/R2testRidge.pdf")
+plt.savefig("plots/R2testLasso.pdf")
 plt.show()

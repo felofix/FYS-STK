@@ -40,11 +40,11 @@ class Franke_Regression:
 	    betas = (np.linalg.pinv(X.T @ X + np.eye(X.shape[1])*lamb) @ X.T) @ z
 	    return betas
 
-	def create_lasso(self, alpha, X, y):
+	def find_betas_Lasso(self, X, y, alpha):
 		# Lasso regression
-		lasso_model = Lasso(alpha=alpha, fit_intercept=False)
+		lasso_model = Lasso(alpha = alpha, fit_intercept=False, normalize=False, max_iter=10000, tol=0.006)
 		lasso_model.fit(X, y)
-		return lasso_model
+		return lasso_model.coef_
 
 	def predict_z(self, X, betas):
 		return X@betas
