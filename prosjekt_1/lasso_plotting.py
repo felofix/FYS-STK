@@ -9,7 +9,7 @@ n = 100
 x = np.sort(np.random.uniform(0, 1, n))
 y = np.sort(np.random.uniform(0, 1, n))
 x, y = np.meshgrid(x,y)
-z = FrankeFunction(x, y) + np.random.normal(scale = 0.1, size = (n,n))
+z = FrankeFunction(x, y) + np.random.normal(scale = 1, size = (n,n))
 
 # Make life easier, flat x and y 
 x_flat = x.flatten()
