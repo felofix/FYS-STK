@@ -9,7 +9,7 @@ n = 100
 x = np.sort(np.random.uniform(0, 1, n))
 y = np.sort(np.random.uniform(0, 1, n))
 x, y = np.meshgrid(x,y)
-z = FrankeFunction(x, y) + 0.1*np.random.normal(scale = 1, size = (n,n))
+z = FrankeFunction(x, y) + np.random.normal(loc = 0.0, scale = 0.1, size=(n,n))
 
 # Make life easier, flat x and y 
 x_flat = x.flatten()
@@ -32,6 +32,7 @@ x_train, x_test, y_train, y_test, z_train, z_test = train_test_split(x_flat, y_f
 
 for l in range(len(lambdas)):
 	for degree in range(1, nr_of_degrees+1):
+		# Creating the model.
 		reg = Franke_Regression()
 		X_train = reg.create_design_matrix(x_train, y_train, degree)
 		X_test = reg.create_design_matrix(x_test, y_test, degree)

@@ -88,7 +88,7 @@ class Kfold:
 
 				mse_KFold[k] = reg.MSE(z_test, z_pred_test)
 
-		return mse_KFold
+		return np.mean(mse_KFold)
 
 	def Ridge(self, nfolds, degree):
 		"""
@@ -197,8 +197,10 @@ if __name__ == "__main__":
 	z = FrankeFunction(x, y) + np.random.normal(scale = 1, size = (n,n))
 	alphas = [0.0001, 0.001, 0.01, 0.1, 1]
 	
-	kfold = Kfold('Lasso', x, y, z, alphas)
+	kfold = Kfold('OLS', x, y, z, alphas)
 	mse = kfold(10, 5)
+
+	
 	
 	
 
