@@ -10,7 +10,8 @@ n = 100
 x = np.linspace(0, 1, n)
 y = np.linspace(0, 1, n)
 x, y = np.meshgrid(x,y)
-z = FrankeFunction(x, y) + np.random.normal(scale = 0.01, size = (n,n))
+z = FrankeFunction(x, y).ravel()
+z+= 0.2*np.random.randn(z.size)
 
 # Make life easier, flat x and y 
 x_flat = x.flatten()
@@ -28,84 +29,53 @@ betas_test = []
 
 for degree in range(1, nr_of_degrees+1):
 	reg = Franke_Regression()
-	X = np.vstack((x_flat, y_flat)).T
-
-	# Create a PolynomialFeatures object with degree=5
-	poly = PolynomialFeatures(degree=degree)
-
-	# Transform the data to polynomial features
-	X = poly.fit_transform(X)
-	X_train, X_test, z_train, z_test = train_test_split(X, z_flat, test_size=0.2)
-	X_scaled_train, X_scaled_test = reg.scale(X_train, X_test) # Scaled. 
-	
-	regger = LinearRegression().fit(X_scaled_train, z_train)
-	z_pred_train = regger.predict(X_scaled_train)
-	MSE_scores_tr[degree - 1] = reg.MSE(z_train, z_pred_train)
-	R2_scores_tr[degree - 1] = reg.R2_score(z_train, z_pred_train)
-
-	z_pred_test = regger.predict(X_scaled_test)
-	MSE_scores_test[degree - 1] = reg.MSE(z_test, z_pred_test)
-	R2_scores_test[degree - 1] = reg.R2_score(z_test, z_pred_test)
-
-
-	"""
-	reg = Franke_Regression()
 	X = reg.create_design_matrix(x_flat, y_flat, degree)
+	X_train, X_test, z_train, z_test = train_test_split(X, z_flat, test_size=0.3, random_state=42)
+	X_scaled_train, X_scaled_test = reg.scale(X_train, X_test) # Scaled.
 
-	# Train
-	betas = reg.find_betas_OLS(X_train, z_train)
+	beta = reg.find_betas_OLS(X_scaled_train, z_train)
+	z_pred_training = reg.predict_z(X_scaled_train, beta) + z_train.mean()
+	z_pred_test = reg.predict_z(X_scaled_test, beta) + z_train.mean()
+
+	# R2 and MSE.
+	R2_scores_tr[degree - 1] = reg.R2_score(z_train, z_pred_training)
+	MSE_scores_tr[degree - 1] = reg.MSE(z_train, z_pred_training)
+
+	R2_scores_test[degree - 1] = reg.R2_score(z_test, z_pred_test)
+	MSE_scores_test[degree - 1] = reg.MSE(z_test, z_pred_test)
+
+	# Betas
+	betas = reg.find_betas_OLS(X_scaled_train, z_train)
 	betas_tr.append(betas)
-	z_pred = reg.predict_z(X_train, betas)
+	z_pred = reg.predict_z(X_scaled_train, betas)
 
-	R2_scores_tr[degree - 1] = reg.R2_score(z_train, z_pred)
-	MSE_scores_tr[degree - 1] = reg.MSE(z_train, z_pred)
-	
-	# Test
-	betas = reg.find_betas_OLS(X_test, z_test)
+	betas = reg.find_betas_OLS(X_scaled_test, z_test)
 	betas_test.append(betas)
-	z_pred = reg.predict_z(X_test, betas)
+	z_pred = reg.predict_z(X_scaled_test, betas)
 
-	R2_scores_test[degree - 1] = reg.R2_score(z_test, z_pred)
-	MSE_scores_test[degree - 1] = reg.MSE(z_test, z_pred)
-	"""
-	
-	
+degrees = np.arange(1,nr_of_degrees+1, 1)
 
-all_degrees = np.arange(1,nr_of_degrees+1, 1)
-
-plt.plot(all_degrees, MSE_scores_tr, 'o-b', label = "MSE Train")
-plt.title("MSE as a function of degrees")
-plt.xlabel("Degree")
-plt.ylabel("MSE")
-plt.grid()
+# Plotting
+plt.figure(figsize=(10, 6))
+plt.plot(degrees, MSE_scores_tr, marker='o', label='Training MSE')
+plt.plot(degrees, MSE_scores_test, marker='x', label='Test MSE')
+plt.xlabel('Polynomial Degree')
+plt.ylabel('MSE')
+plt.title('Mean Squared Error vs. Polynomial Degree')
 plt.legend()
-#plt.savefig("plots/MSEtrainingOLS.pdf")
+plt.grid(True)
+plt.savefig("plots/MSE_OLS.pdf")
 
-
-plt.plot(all_degrees, MSE_scores_test, 'o-r', label = "MSE Test")
-plt.title("MSE as a function of degrees")
-plt.xlabel("Degree")
-plt.ylabel("MSE")
-plt.grid()
+# Plotting
+plt.figure(figsize=(10, 6))
+plt.plot(degrees, R2_scores_tr, marker='o', label='Training R2')
+plt.plot(degrees, R2_scores_test, marker='x', label='Test R2')
+plt.xlabel('Polynomial Degree')
+plt.ylabel('R2')
+plt.title('R2 vs. Polynomial Degree')
 plt.legend()
-plt.show()
-
-plt.plot(all_degrees, R2_scores_tr, 'o-b', label = "R2 Train" )
-plt.title("$R^2$ as a function of degrees")
-plt.xlabel("Degree")
-plt.ylabel("MSE")
-plt.grid()
-plt.legend()
-#plt.savefig("plots/R2trainOLS.pdf")
-
-plt.plot(all_degrees, R2_scores_test, 'o-r', label = "R2 Test" )
-plt.title("$R^2$ as a function of degrees")
-plt.xlabel("Degree")
-plt.ylabel("MSE")
-plt.grid()
-plt.legend()
-#plt.savefig("plots/R2testOLS.pdf")
-plt.show()
+plt.grid(True)
+plt.savefig("plots/R2_OLS.pdf")
 
 """
 fig, ax = plt.subplots(figsize=(10, 6))
