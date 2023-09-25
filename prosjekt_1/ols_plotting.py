@@ -19,7 +19,7 @@ y_flat = y.flatten()
 z_flat = z.flatten()
 
 # Creating design matrix. 
-nr_of_degrees = 20
+nr_of_degrees = 10
 R2_scores_tr = np.zeros(nr_of_degrees)
 MSE_scores_tr = np.zeros(nr_of_degrees)
 betas_tr = []
@@ -30,7 +30,7 @@ betas_test = []
 for degree in range(1, nr_of_degrees+1):
 	reg = Franke_Regression()
 	X = reg.create_design_matrix(x_flat, y_flat, degree)
-	X_train, X_test, z_train, z_test = train_test_split(X, z_flat, test_size=0.3, random_state=42)
+	X_train, X_test, z_train, z_test = train_test_split(X, z_flat, test_size=0.33, random_state=42)
 	X_scaled_train, X_scaled_test = reg.scale(X_train, X_test) # Scaled.
 
 	beta = reg.find_betas_OLS(X_scaled_train, z_train)
