@@ -5,12 +5,12 @@ from sklearn.linear_model import Ridge
 np.random.seed(14)
 
 # Generate data 
-n = 50
+n = 20
 x = np.linspace(0, 1, n)
 y = np.linspace(0, 1, n)
 x, y = np.meshgrid(x,y)
 z = FrankeFunction(x, y).ravel()
-z+= 0.5*np.random.randn(z.size)
+z+= 0.2*np.random.randn(z.size)
 
 # Make life easier, flat x and y 
 x_flat = x.flatten()
@@ -18,8 +18,8 @@ y_flat = y.flatten()
 z_flat = z.flatten()
 
 # Creating design matrix. 
-nr_of_degrees = 10
-lambdas = [1e-9, 1e-6, 1e-3, 1, 10]
+nr_of_degrees = 5
+lambdas = [0.0001, 0.001, 0.01, 0.1, 1]
 
 # Training scores.
 R2_scores_tr = np.zeros((nr_of_degrees, len(lambdas)))
@@ -34,7 +34,7 @@ for l in range(len(lambdas)):
 		# Creating the model.
 		reg = Franke_Regression()
 		X = reg.create_design_matrix(x_flat, y_flat, degree)
-		X_train, X_test, z_train, z_test = train_test_split(X, z_flat, test_size=0.2, random_state=42)
+		X_train, X_test, z_train, z_test = train_test_split(X, z_flat, test_size=0.33, random_state=42)
 		X_scaled_train, X_scaled_test = reg.scale(X_train, X_test) # Scaled. 
 		
 		# Training and prediciting.
@@ -49,12 +49,11 @@ for l in range(len(lambdas)):
 		R2_scores_te[degree - 1, l] = reg.R2_score(z_test, z_pred_test)
 		MSE_scores_te[degree - 1, l] =  reg.MSE(z_test, z_pred_test)
 
-
 all_degrees = np.arange(1,nr_of_degrees+1, 1)
 
 # Plotting training set. 
 for l in range(len(lambdas)):
-	plt.plot(all_degrees, MSE_scores_tr[:, l], label = f"lambda = {lambdas[l]}")
+	plt.plot(all_degrees, MSE_scores_tr[:, l],'o-', label = f"lambda = {lambdas[l]}")
 
 plt.legend()
 plt.grid()
@@ -64,7 +63,7 @@ plt.savefig("plots/MSEtrainingRidge.pdf")
 plt.show()
 
 for l in range(len(lambdas)):
-	plt.plot(all_degrees, R2_scores_tr[:, l], label = f"lambda = {lambdas[l]}")
+	plt.plot(all_degrees, R2_scores_tr[:, l],'o-', label = f"lambda = {lambdas[l]}")
 
 plt.legend()
 plt.xlabel("Degree")
@@ -75,7 +74,7 @@ plt.show()
 
 # Plotting test set. 
 for l in range(len(lambdas)):
-	plt.plot(all_degrees, MSE_scores_te[:, l], label = f"lambda = {lambdas[l]}")
+	plt.plot(all_degrees, MSE_scores_te[:, l],'o-', label = f"lambda = {lambdas[l]}")
 
 plt.legend()
 plt.grid()
@@ -85,7 +84,7 @@ plt.savefig("plots/MSEtestRidge.pdf")
 plt.show()
 
 for l in range(len(lambdas)):
-	plt.plot(all_degrees, R2_scores_te[:, l], label = f"lambda = {lambdas[l]}")
+	plt.plot(all_degrees, R2_scores_te[:, l],'o-', label = f"lambda = {lambdas[l]}")
 
 plt.legend()
 plt.xlabel("Degree")

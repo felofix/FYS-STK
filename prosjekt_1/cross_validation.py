@@ -186,19 +186,23 @@ class Kfold:
 
 		mse_KFold = np.mean(mse_KFold, axis = 1) 
 
-
 if __name__ == "__main__":
 	### TEST ###
 	# Generate data 
+	#
+	np.random.seed(14)
+
+	# Generate data 
 	n = 100
-	x = np.sort(np.random.uniform(0, 1, n))
-	y = np.sort(np.random.uniform(0, 1, n))
+	x = np.linspace(0, 1, n)
+	y = np.linspace(0, 1, n)
 	x, y = np.meshgrid(x,y)
-	z = FrankeFunction(x, y) + np.random.normal(scale = 1, size = (n,n))
-	alphas = [0.0001, 0.001, 0.01, 0.1, 1]
+	z = FrankeFunction(x, y).ravel()
+	z+= 0.2*np.random.randn(z.size)
 	
 	kfold = Kfold('OLS', x, y, z, alphas)
-	mse = kfold(10, 5)
+	
+	kfoldsvalues = [5, 6, 7, 8, 9, 10]
 
 	
 	

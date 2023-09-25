@@ -2,11 +2,11 @@ from functionality import *
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 
-#
+# Introducing constant randomness.
 np.random.seed(14)
 
 # Generate data 
-n = 100
+n = 40
 x = np.linspace(0, 1, n)
 y = np.linspace(0, 1, n)
 x, y = np.meshgrid(x,y)
