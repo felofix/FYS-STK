@@ -7,11 +7,11 @@ from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 from sklearn.metrics import mean_squared_error
 
 # Some random seed. 
-np.random.seed(14)
+np.random.seed(2018)
 
 class Kfolds:
 
-	def __init__(self, model, x, y, z, alphas):
+	def __init__(self, model, x, y, z):
 		"""
 		-----      Paramters      -----
 
@@ -28,9 +28,8 @@ class Kfolds:
 		self.x = x.flatten()
 		self.y = y.flatten()
 		self.z = z.flatten()
-		self.alphas = alphas
 
-	def __call__(self, nfolds, degree):
+	def __call__(self, nfolds, degree, alpha=1):
 		"""
 		-----      Paramters      -----
 
@@ -43,10 +42,10 @@ class Kfolds:
 			return self.OLS(nfolds, degree)
 
 		if self.model == 'Ridge':
-			return self.Ridge(nfolds, degree)
+			return self.Ridge(nfolds, degree, alpha)
 
 		if self.model == 'Lasso':
-			return self.Lasso(nfolds, degree)
+			return self.Lasso(nfolds, degree, alpha)
 
 	def OLS(self, nfolds, degree):
 		"""
@@ -101,7 +100,7 @@ class Kfolds:
 
 		return np.mean(mse_KFold)
 
-	def Ridge(self, nfolds, degree):
+	def Ridge(self, nfolds, degree, alpha=1):
 		"""
 		-----      Paramters      -----
 
@@ -129,37 +128,36 @@ class Kfolds:
 		y_split = np.array(np.array_split(self.y, nfolds))
 		z_split = np.array(np.array_split(self.z, nfolds))
 
-		mse_KFold = np.zeros((len(self.alphas), nfolds))
+		mse_KFold = np.zeros(nfolds)
 
-		for a in range(len(alphas)):
-			for k in range(nfolds):
-				# Training data.
-				x_train = numpy.concatenate(x_split[np.arange(nfolds) != k])
-				y_train = numpy.concatenate(y_split[np.arange(nfolds) != k])
-				z_train = numpy.concatenate(z_split[np.arange(nfolds) != k])
+		for k in range(nfolds):
+			# Training data.
+			x_train = numpy.concatenate(x_split[np.arange(nfolds) != k])
+			y_train = numpy.concatenate(y_split[np.arange(nfolds) != k])
+			z_train = numpy.concatenate(z_split[np.arange(nfolds) != k])
 
-				# Test data. 
-				x_test = x_split[k]
-				y_test = y_split[k]
-				z_test = z_split[k]
+			# Test data. 
+			x_test = x_split[k]
+			y_test = y_split[k]
+			z_test = z_split[k]
 
-				# Create coefficients.
-				reg = Franke_Regression()
-				X_train = reg.create_design_matrix(x_train, y_train, degree)
-				X_test = reg.create_design_matrix(x_test, y_test, degree)
-				X_scaled_train, X_scaled_test = reg.scale(X_train, X_test) # Scaled. 
+			# Create coefficients.
+			reg = Franke_Regression()
+			X_train = reg.create_design_matrix(x_train, y_train, degree)
+			X_test = reg.create_design_matrix(x_test, y_test, degree)
+			X_scaled_train, X_scaled_test = reg.scale(X_train, X_test) # Scaled. 
 
-				# Training.
-				betas = reg.find_betas_Ridge(X_scaled_train, z_train, self.alphas[a])
-				z_pred_test = reg.predict_z(X_scaled_test, betas) + z_train.mean()
+			# Training.
+			betas = reg.find_betas_Ridge(X_scaled_train, z_train, alpha)
+			z_pred_test = reg.predict_z(X_scaled_test, betas) + z_train.mean()
 
-				mse_KFold[a, k] = reg.MSE(z_test, z_pred_test)
+			mse_KFold[k] = reg.MSE(z_test, z_pred_test)
 
-		mse_KFold = np.mean(mse_KFold, axis = 1)
+		mse_KFold = np.mean(mse_KFold)
 
 		return mse_KFold
 
-	def Lasso(self, nfolds, degree):
+	def Lasso(self, nfolds, degree, alpha=1):
 		"""
 		-----      Paramters      -----
 
@@ -187,33 +185,34 @@ class Kfolds:
 		y_split = np.array(np.array_split(self.y, nfolds))
 		z_split = np.array(np.array_split(self.z, nfolds))
 
-		mse_KFold = np.zeros((len(self.alphas), nfolds))
+		mse_KFold = np.zeros(nfolds)
 
-		for a in range(len(alphas)):
-			for k in range(nfolds):	
-				# Training data.
-				x_train = numpy.concatenate(x_split[np.arange(nfolds) != k])
-				y_train = numpy.concatenate(y_split[np.arange(nfolds) != k])
-				z_train = numpy.concatenate(z_split[np.arange(nfolds) != k])
+		for k in range(nfolds):	
+			# Training data.
+			x_train = numpy.concatenate(x_split[np.arange(nfolds) != k])
+			y_train = numpy.concatenate(y_split[np.arange(nfolds) != k])
+			z_train = numpy.concatenate(z_split[np.arange(nfolds) != k])
 
-				# Test data. 
-				x_test = x_split[k]
-				y_test = y_split[k]
-				z_test = z_split[k]
+			# Test data. 
+			x_test = x_split[k]
+			y_test = y_split[k]
+			z_test = z_split[k]
 
-				# Create coefficients.
-				reg = Franke_Regression()
-				X_train = reg.create_design_matrix(x_train, y_train, degree)
-				X_test = reg.create_design_matrix(x_test, y_test, degree)
-				X_scaled_train, X_scaled_test = reg.scale(X_train, X_test) # Scaled.
+			# Create coefficients.
+			reg = Franke_Regression()
+			X_train = reg.create_design_matrix(x_train, y_train, degree)
+			X_test = reg.create_design_matrix(x_test, y_test, degree)
+			X_scaled_train, X_scaled_test = reg.scale(X_train, X_test) # Scaled.
 
-				# Training.
-				betas = reg.find_betas_Lasso(X_scaled_train, z_train, self.alphas[a])
-				z_pred_test = reg.predict_z(X_scaled_test, betas) + z_train.mean()
+			# Training.
+			betas = reg.find_betas_Lasso(X_scaled_train, z_train, alpha)
+			z_pred_test = reg.predict_z(X_scaled_test, betas) + z_train.mean()
 
-				mse_KFold[a, k] = reg.MSE(z_test, z_pred_test)
+			mse_KFold[k] = reg.MSE(z_test, z_pred_test)
 
-		mse_KFold = np.mean(mse_KFold, axis = 1) 
+		mse_KFold = np.mean(mse_KFold) 
+
+		return mse_KFold
 
 	def kfold_with_sklearn(self, nfolds, degree):
 	    # Concatenate data and shuffle
@@ -261,14 +260,13 @@ if __name__ == "__main__":
 	np.random.seed(14)
 
 	# Generate data 
-	n = 40
+	n = 20
 	x = np.linspace(0, 1, n)
 	y = np.linspace(0, 1, n)
 	x, y = np.meshgrid(x,y)
 	z = FrankeFunction(x, y).ravel()
-	z+= 0.2*np.random.randn(z.size)
-	alphas =[0.0001, 0.001, 0.01, 0.1, 1]
-	kfold = Kfolds('OLS', x, y, z, alphas)
+	z+= 0.1*np.random.randn(z.size)
+	kfold = Kfolds('Lasso', x, y, z)
 	kfolds = [5, 6, 7, 8, 9, 10]
 	degrees = 10
 	MSE_ols = np.zeros((degrees, len(kfolds)))
@@ -276,13 +274,16 @@ if __name__ == "__main__":
 	# OLS. 
 	for k in range(len(kfolds)):
 		for d in range(degrees):
-			MSE_ols[d, k] = kfold(kfolds[k], d + 1)
+			MSE_ols[d, k] = kfold(kfolds[k], d + 1, alpha=1)
 
 	for k in range(len(kfolds)):
 		plt.plot(np.arange(1, degrees + 1), MSE_ols[:, k], 'o-', label=f'kfolds = {kfolds[k]}')
 
 	plt.legend()
 	plt.grid()
+	plt.ylabel('MSE')
+	plt.xlabel('Polynomial degree')
+	plt.savefig("plots/crossval_Lasso.pdf")
 	plt.show()
 
 	
