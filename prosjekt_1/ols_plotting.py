@@ -19,7 +19,7 @@ y_flat = y.flatten()
 z_flat = z.flatten()
 
 # Creating design matrix. 
-nr_of_degrees = 10
+nr_of_degrees = 5
 R2_scores_tr = np.zeros(nr_of_degrees)
 MSE_scores_tr = np.zeros(nr_of_degrees)
 betas_tr = []
@@ -56,7 +56,6 @@ for degree in range(1, nr_of_degrees+1):
 degrees = np.arange(1,nr_of_degrees+1, 1)
 
 # Plotting
-plt.figure(figsize=(10, 6))
 plt.plot(degrees, MSE_scores_tr, marker='o', label='Training MSE')
 plt.plot(degrees, MSE_scores_test, marker='x', label='Test MSE')
 plt.xlabel('Polynomial Degree')
@@ -67,7 +66,6 @@ plt.grid(True)
 plt.savefig("plots/MSE_OLS.pdf")
 
 # Plotting
-plt.figure(figsize=(10, 6))
 plt.plot(degrees, R2_scores_tr, marker='o', label='Training R2')
 plt.plot(degrees, R2_scores_test, marker='x', label='Test R2')
 plt.xlabel('Polynomial Degree')
