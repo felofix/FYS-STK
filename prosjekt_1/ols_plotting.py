@@ -1,100 +1,127 @@
 from functionality import *
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
+from mpl_toolkits.mplot3d import Axes3D
+from imageio import imread
 
 # Introducing constant randomness.
 np.random.seed(14)
 
-# Generate data 
-n = 40
-x = np.linspace(0, 1, n)
-y = np.linspace(0, 1, n)
-x, y = np.meshgrid(x,y)
-z = FrankeFunction(x, y).ravel()
-z+= 0.2*np.random.randn(z.size)
+def regress_and_plot_OLS(datatype):
+	"""
+	Datatype. Real of fake?
+	Only accepts 'Real' or 'Fake'.
+	"""
+	if datatype == 'generated':
+		# Generate data 
+		n = 20
+		x = np.linspace(0, 1, n)
+		y = np.linspace(0, 1, n)
+		x, y = np.meshgrid(x,y)
+		z = FrankeFunction(x, y).ravel()
+		z+= 0.2*np.random.randn(z.size)
 
-# Make life easier, flat x and y 
-x_flat = x.flatten()
-y_flat = y.flatten()
-z_flat = z.flatten()
+	if datatype == 'real':
+		# Load the terrain
+		terrain1 = imread('terrain/SRTM_data_Norway_1.tif')[::100, ::100]
+		xlen, ylen = terrain1.shape[1], terrain1.shape[0]
+		x, y = np.arange(0, xlen), np.arange(0, ylen)
+		x, y = np.meshgrid(x, y)
+		z = terrain1
 
-# Creating design matrix. 
-nr_of_degrees = 10
-R2_scores_tr = np.zeros(nr_of_degrees)
-MSE_scores_tr = np.zeros(nr_of_degrees)
-betas_tr = []
-R2_scores_test = np.zeros(nr_of_degrees)
-MSE_scores_test = np.zeros(nr_of_degrees)
-betas_test = []
+	# Make life easier, flat x and y 
+	x_flat = x.flatten()
+	y_flat = y.flatten()
+	z_flat = z.flatten()
 
-for degree in range(1, nr_of_degrees+1):
-	reg = Franke_Regression()
-	X = reg.create_design_matrix(x_flat, y_flat, degree)
-	X_train, X_test, z_train, z_test = train_test_split(X, z_flat, test_size=0.33, random_state=42)
-	X_scaled_train, X_scaled_test = reg.scale(X_train, X_test) # Scaled.
+	# Creating design matrix. 
+	nr_of_degrees = 20
+	R2_scores_tr = np.zeros(nr_of_degrees)
+	MSE_scores_tr = np.zeros(nr_of_degrees)
+	betas_tr = []
+	R2_scores_test = np.zeros(nr_of_degrees)
+	MSE_scores_test = np.zeros(nr_of_degrees)
+	betas_test = []
 
-	beta = reg.find_betas_OLS(X_scaled_train, z_train)
-	z_pred_training = reg.predict_z(X_scaled_train, beta) + z_train.mean()
-	z_pred_test = reg.predict_z(X_scaled_test, beta) + z_train.mean()
+	for degree in range(1, nr_of_degrees+1):
+		print(degree)
+		reg = Franke_Regression()
+		X = reg.create_design_matrix(x_flat, y_flat, degree)
+		X_train, X_test, z_train, z_test = train_test_split(X, z_flat, test_size=0.33, random_state=42)
+		X_scaled_train, X_scaled_test = reg.scale(X_train, X_test) # Scaled.
 
-	# R2 and MSE.
-	R2_scores_tr[degree - 1] = reg.R2_score(z_train, z_pred_training)
-	MSE_scores_tr[degree - 1] = reg.MSE(z_train, z_pred_training)
+		beta = reg.find_betas_OLS(X_scaled_train, z_train)
+		z_pred_training = reg.predict_z(X_scaled_train, beta) + z_train.mean()
+		z_pred_test = reg.predict_z(X_scaled_test, beta) + z_train.mean()
 
-	R2_scores_test[degree - 1] = reg.R2_score(z_test, z_pred_test)
-	MSE_scores_test[degree - 1] = reg.MSE(z_test, z_pred_test)
+		# R2 and MSE.
+		R2_scores_tr[degree - 1] = reg.R2_score(z_train, z_pred_training)
+		MSE_scores_tr[degree - 1] = reg.MSE(z_train, z_pred_training)
 
-	# Betas
-	betas = reg.find_betas_OLS(X_scaled_train, z_train)
-	betas_tr.append(betas)
-	z_pred = reg.predict_z(X_scaled_train, betas)
+		R2_scores_test[degree - 1] = reg.R2_score(z_test, z_pred_test)
+		MSE_scores_test[degree - 1] = reg.MSE(z_test, z_pred_test)
 
-	betas = reg.find_betas_OLS(X_scaled_test, z_test)
-	betas_test.append(betas)
-	z_pred = reg.predict_z(X_scaled_test, betas)
+		# Betas
+		betas = reg.find_betas_OLS(X_scaled_train, z_train)
+		betas_tr.append(betas)
+		z_pred = reg.predict_z(X_scaled_train, betas)
 
-degrees = np.arange(1,nr_of_degrees+1, 1)
+		betas = reg.find_betas_OLS(X_scaled_test, z_test)
+		betas_test.append(betas)
+		z_pred = reg.predict_z(X_scaled_test, betas)
 
-# Plotting
-plt.figure(figsize=(10, 6))
-plt.plot(degrees, MSE_scores_tr, marker='o', label='Training MSE')
-plt.plot(degrees, MSE_scores_test, marker='x', label='Test MSE')
-plt.xlabel('Polynomial Degree')
-plt.ylabel('MSE')
-plt.title('Mean Squared Error vs. Polynomial Degree')
-plt.legend()
-plt.grid(True)
-plt.savefig("plots/MSE_OLS.pdf")
+	degrees = np.arange(1,nr_of_degrees+1, 1)
 
-# Plotting
-plt.figure(figsize=(10, 6))
-plt.plot(degrees, R2_scores_tr, marker='o', label='Training R2')
-plt.plot(degrees, R2_scores_test, marker='x', label='Test R2')
-plt.xlabel('Polynomial Degree')
-plt.ylabel('R2')
-plt.title('R2 vs. Polynomial Degree')
-plt.legend()
-plt.grid(True)
-plt.savefig("plots/R2_OLS.pdf")
+	# Plotting
+	plt.figure(figsize=(10, 6))
+	plt.plot(degrees, MSE_scores_tr, marker='o', label='Training MSE')
+	plt.plot(degrees, MSE_scores_test, marker='x', label='Test MSE')
+	plt.xlabel('Polynomial Degree')
+	plt.ylabel('MSE')
+	plt.title(f'Mean Squared Error vs. Polynomial Degree with {datatype} data')
+	plt.legend()
+	plt.grid(True)
+	plt.savefig(f"plots/MSE_OLS_{datatype}.pdf")
 
-"""
-fig, ax = plt.subplots(figsize=(10, 6))
+	# Plotting
+	plt.figure(figsize=(10, 6))
+	plt.plot(degrees, R2_scores_tr, marker='o', label='Training R2')
+	plt.plot(degrees, R2_scores_test, marker='x', label='Test R2')
+	plt.xlabel('Polynomial Degree')
+	plt.ylabel('R2')
+	plt.title(f'R2 vs. Polynomial Degree with {datatype} data')
+	plt.legend()
+	plt.grid(True)
+	plt.savefig(f"plots/R2_OLS_{datatype}.pdf")
 
-# Define a color map to have different colors for different degrees
-colors = ['blue', 'green', 'red', 'purple', 'black']
+	"""
+	fig, ax = plt.subplots(figsize=(10, 6))
 
-for degree, betas_degree in enumerate(betas_tr, 1):
-    x_vals = np.arange(len(betas_degree))
-    ax.scatter(x_vals, betas_degree, marker='o', color=colors[degree-1], label=f'Degree {degree}')
-    ax.vlines(x_vals, 0, betas_degree, color=colors[degree-1], linestyle='--', lw=1)  
+	# Define a color map to have different colors for different degrees
+	colors = ['blue', 'green', 'red', 'purple', 'black']
 
-ax.set_xlabel('$\\beta_j$')
-ax.set_ylabel('Coefficient Value')
-ax.set_title('Beta Coefficients')
-ax.legend()
-ax.grid(True)
+	for degree, betas_degree in enumerate(betas_tr, 1):
+	    x_vals = np.arange(len(betas_degree))
+	    ax.scatter(x_vals, betas_degree, marker='o', color=colors[degree-1], label=f'Degree {degree}')
+	    ax.vlines(x_vals, 0, betas_degree, color=colors[degree-1], linestyle='--', lw=1)  
 
-plt.tight_layout()
-plt.xticks(np.arange(0, 21, step=1))
-plt.savefig("plots/beta_coefficents.pdf")
-"""
+	ax.set_xlabel('$\\beta_j$')
+	ax.set_ylabel('Coefficient Value')
+	ax.set_title('Beta Coefficients')
+	ax.legend()
+	ax.grid(True)
+
+	plt.tight_layout()
+	plt.xticks(np.arange(0, 21, step=1))
+	plt.savefig("plots/beta_coefficents.pdf")
+	"""
+
+if __name__ == "__main__":
+	regress_and_plot_OLS('real')
+
+
+
+
+
+
+
