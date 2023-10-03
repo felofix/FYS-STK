@@ -6,7 +6,7 @@ from sklearn.preprocessing import PolynomialFeatures
 np.random.seed(14)
 
 # Generate data 
-n = 40
+n = 20
 x = np.linspace(0, 1, n)
 y = np.linspace(0, 1, n)
 x, y = np.meshgrid(x,y)
