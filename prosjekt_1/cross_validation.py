@@ -5,6 +5,7 @@ from sklearn.model_selection import KFold
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 from sklearn.metrics import mean_squared_error
+from imageio import imread
 
 # Some random seed. 
 np.random.seed(2018)
@@ -256,17 +257,33 @@ class Kfolds:
 if __name__ == "__main__":
 	### TEST ###
 	# Generate data 
-	#
-	np.random.seed(14)
 
-	# Generate data 
-	n = 20
-	x = np.linspace(0, 1, n)
-	y = np.linspace(0, 1, n)
-	x, y = np.meshgrid(x,y)
-	z = FrankeFunction(x, y).ravel()
-	z+= 0.1*np.random.randn(z.size)
-	kfold = Kfolds('Lasso', x, y, z)
+	datatype = 'real'
+	regressiontype = 'Ridge'
+	
+	if datatype == 'generated':
+			# Generate data 
+			n = 20
+			x = np.linspace(0, 1, n)
+			y = np.linspace(0, 1, n)
+			x, y = np.meshgrid(x,y)
+			z = FrankeFunction(x, y).ravel()
+			z+= 0.2*np.random.randn(z.size)
+
+	if datatype == 'real':
+		# Load the terrain
+		terrain1 = imread('terrain/SRTM_data_Norway_1.tif')[::100, ::100]
+		xlen, ylen = terrain1.shape[1], terrain1.shape[0]
+		x, y = np.arange(0, xlen), np.arange(0, ylen)
+		x, y = np.meshgrid(x, y)
+		z = terrain1
+
+	# Make life easier, flat x and y 
+	x_flat = x.flatten()
+	y_flat = y.flatten()
+	z_flat = z.flatten()
+
+	kfold = Kfolds(regressiontype, x, y, z)
 	kfolds = [5, 6, 7, 8, 9, 10]
 	degrees = 10
 	MSE_ols = np.zeros((degrees, len(kfolds)))
@@ -283,7 +300,7 @@ if __name__ == "__main__":
 	plt.grid()
 	plt.ylabel('MSE')
 	plt.xlabel('Polynomial degree')
-	plt.savefig("plots/crossval_Lasso.pdf")
+	plt.savefig(f"plots/crossval_{regressiontype}_{datatype}.pdf")
 	plt.show()
 
 	

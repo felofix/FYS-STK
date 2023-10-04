@@ -4,92 +4,109 @@ from sklearn.linear_model import Ridge
 # Same results every time. 
 np.random.seed(14)
 
-# Generate data 
-n = 20
-x = np.linspace(0, 1, n)
-y = np.linspace(0, 1, n)
-x, y = np.meshgrid(x,y)
-z = FrankeFunction(x, y).ravel()
-z+= 0.2*np.random.randn(z.size)
+def regress_and_plot_Ridge(datatype):
+	"""
+	Datatype. Real of fake?
+	Only accepts 'Real' or 'Fake'.
+	"""
+	if datatype == 'generated':
+		# Generate data 
+		n = 20
+		x = np.linspace(0, 1, n)
+		y = np.linspace(0, 1, n)
+		x, y = np.meshgrid(x,y)
+		z = FrankeFunction(x, y).ravel()
+		z+= 0.2*np.random.randn(z.size)
 
-# Make life easier, flat x and y 
-x_flat = x.flatten()
-y_flat = y.flatten()
-z_flat = z.flatten()
+	if datatype == 'real':
+		# Load the terrain
+		terrain1 = imread('terrain/SRTM_data_Norway_1.tif')[::100, ::100]
+		xlen, ylen = terrain1.shape[1], terrain1.shape[0]
+		x, y = np.arange(0, xlen), np.arange(0, ylen)
+		x, y = np.meshgrid(x, y)
+		z = terrain1
 
-# Creating design matrix. 
-nr_of_degrees = 5
-lambdas = [0.0001, 0.001, 0.01, 0.1, 1]
+	# Make life easier, flat x and y 
+	x_flat = x.flatten()
+	y_flat = y.flatten()
+	z_flat = z.flatten()
 
-# Training scores.
-R2_scores_tr = np.zeros((nr_of_degrees, len(lambdas)))
-MSE_scores_tr = np.zeros((nr_of_degrees, len(lambdas)))
+	# Creating design matrix. 
+	nr_of_degrees = 5
+	lambdas = [0.0001, 0.001, 0.01, 0.1, 1]
 
-# Test scores. 
-R2_scores_te = np.zeros((nr_of_degrees, len(lambdas)))
-MSE_scores_te = np.zeros((nr_of_degrees, len(lambdas)))
+	# Training scores.
+	R2_scores_tr = np.zeros((nr_of_degrees, len(lambdas)))
+	MSE_scores_tr = np.zeros((nr_of_degrees, len(lambdas)))
 
-for l in range(len(lambdas)):
-	for degree in range(1, nr_of_degrees+1):
-		# Creating the model.
-		reg = Franke_Regression()
-		X = reg.create_design_matrix(x_flat, y_flat, degree)
-		X_train, X_test, z_train, z_test = train_test_split(X, z_flat, test_size=0.33, random_state=42)
-		X_scaled_train, X_scaled_test = reg.scale(X_train, X_test) # Scaled. 
-		
-		# Training and prediciting.
-		betas = reg.find_betas_Lasso(X_scaled_train, z_train, lambdas[l])
-		z_pred_training = reg.predict_z(X_scaled_train, betas) + z_train.mean()
-		z_pred_test = reg.predict_z(X_scaled_test, betas) + z_train.mean()
+	# Test scores. 
+	R2_scores_te = np.zeros((nr_of_degrees, len(lambdas)))
+	MSE_scores_te = np.zeros((nr_of_degrees, len(lambdas)))
 
-		# R2 and MSE.
-		R2_scores_tr[degree - 1, l] = reg.R2_score(z_train, z_pred_training)
-		MSE_scores_tr[degree - 1, l] = reg.MSE(z_train, z_pred_training)
+	for l in range(len(lambdas)):
+		for degree in range(1, nr_of_degrees+1):
+			# Creating the model.
+			reg = Franke_Regression()
+			X = reg.create_design_matrix(x_flat, y_flat, degree)
+			X_train, X_test, z_train, z_test = train_test_split(X, z_flat, test_size=0.33, random_state=42)
+			X_scaled_train, X_scaled_test = reg.scale(X_train, X_test) # Scaled. 
+			
+			# Training and prediciting.
+			betas = reg.find_betas_Lasso(X_scaled_train, z_train, lambdas[l])
+			z_pred_training = reg.predict_z(X_scaled_train, betas) + z_train.mean()
+			z_pred_test = reg.predict_z(X_scaled_test, betas) + z_train.mean()
 
-		R2_scores_te[degree - 1, l] = reg.R2_score(z_test, z_pred_test)
-		MSE_scores_te[degree - 1, l] =  reg.MSE(z_test, z_pred_test)
+			# R2 and MSE.
+			R2_scores_tr[degree - 1, l] = reg.R2_score(z_train, z_pred_training)
+			MSE_scores_tr[degree - 1, l] = reg.MSE(z_train, z_pred_training)
 
-all_degrees = np.arange(1,nr_of_degrees+1, 1)
+			R2_scores_te[degree - 1, l] = reg.R2_score(z_test, z_pred_test)
+			MSE_scores_te[degree - 1, l] =  reg.MSE(z_test, z_pred_test)
 
-# Plotting training set. 
+	all_degrees = np.arange(1,nr_of_degrees+1, 1)
 
-for l in range(len(lambdas)):
-	plt.plot(all_degrees, MSE_scores_tr[:, l],'o-', label = f"lambda = {lambdas[l]}")
+	# Plotting training set. 
 
-plt.legend()
-plt.grid()
-plt.xlabel("Degree")
-plt.ylabel("MSE")
-plt.savefig("plots/MSEtrainingLasso.pdf")
-plt.show()
+	for l in range(len(lambdas)):
+		plt.plot(all_degrees, MSE_scores_tr[:, l],'o-', label = f"lambda = {lambdas[l]}")
 
-for l in range(len(lambdas)):
-	plt.plot(all_degrees, R2_scores_tr[:, l],'o-', label = f"lambda = {lambdas[l]}")
+	plt.legend()
+	plt.grid()
+	plt.xlabel("Degree")
+	plt.ylabel("MSE")
+	plt.savefig(f"plots/MSEtrainingLasso_{datatype}.pdf")
+	plt.show()
 
-plt.legend()
-plt.xlabel("Degree")
-plt.ylabel("R2")
-plt.grid()
-plt.savefig("plots/R2trainingLasso.pdf")
-plt.show()
+	for l in range(len(lambdas)):
+		plt.plot(all_degrees, R2_scores_tr[:, l],'o-', label = f"lambda = {lambdas[l]}")
 
-# Plotting test set. 
-for l in range(len(lambdas)):
-	plt.plot(all_degrees, MSE_scores_te[:, l],'o-', label = f"lambda = {lambdas[l]}")
+	plt.legend()
+	plt.xlabel("Degree")
+	plt.ylabel("R2")
+	plt.grid()
+	plt.savefig(f"plots/R2trainingLasso_{datatype}.pdf")
+	plt.show()
 
-plt.legend()
-plt.grid()
-plt.xlabel("Degree")
-plt.ylabel("MSE")
-plt.savefig("plots/MSEtestLasso.pdf")
-plt.show()
+	# Plotting test set. 
+	for l in range(len(lambdas)):
+		plt.plot(all_degrees, MSE_scores_te[:, l],'o-', label = f"lambda = {lambdas[l]}")
 
-for l in range(len(lambdas)):
-	plt.plot(all_degrees, R2_scores_te[:, l],'o-', label = f"lambda = {lambdas[l]}")
+	plt.legend()
+	plt.grid()
+	plt.xlabel("Degree")
+	plt.ylabel("MSE")
+	plt.savefig(f"plots/MSEtestLasso_{datatype}.pdf")
+	plt.show()
 
-plt.legend()
-plt.xlabel("Degree")
-plt.ylabel("R2")
-plt.grid()
-plt.savefig("plots/R2testLasso.pdf")
-plt.show()
+	for l in range(len(lambdas)):
+		plt.plot(all_degrees, R2_scores_te[:, l],'o-', label = f"lambda = {lambdas[l]}")
+
+	plt.legend()
+	plt.xlabel("Degree")
+	plt.ylabel("R2")
+	plt.grid()
+	plt.savefig(f"plots/R2testLasso_{datatype}.pdf")
+	plt.show()
+
+if __name__ == "__main__":
+	regress_and_plot_Ridge('real')
