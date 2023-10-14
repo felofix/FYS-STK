@@ -7,15 +7,6 @@ from imageio import imread
 # Introducing constant randomness.
 np.random.seed(14)
 
-<<<<<<< HEAD
-# Generate data 
-n = 20
-x = np.linspace(0, 1, n)
-y = np.linspace(0, 1, n)
-x, y = np.meshgrid(x,y)
-z = FrankeFunction(x, y).ravel()
-z+= 0.2*np.random.randn(z.size)
-=======
 def regress_and_plot_OLS(datatype):
 	"""
 	Datatype. Real of fake?
@@ -29,7 +20,6 @@ def regress_and_plot_OLS(datatype):
 		x, y = np.meshgrid(x,y)
 		z = FrankeFunction(x, y).ravel()
 		z+= 0.2*np.random.randn(z.size)
->>>>>>> d09ffb021658b01aac33782ec5e636e92ab55c07
 
 	if datatype == 'real':
 		# Load the terrain
@@ -39,21 +29,10 @@ def regress_and_plot_OLS(datatype):
 		x, y = np.meshgrid(x, y)
 		z = terrain1
 
-<<<<<<< HEAD
-# Creating design matrix. 
-nr_of_degrees = 5
-R2_scores_tr = np.zeros(nr_of_degrees)
-MSE_scores_tr = np.zeros(nr_of_degrees)
-betas_tr = []
-R2_scores_test = np.zeros(nr_of_degrees)
-MSE_scores_test = np.zeros(nr_of_degrees)
-betas_test = []
-=======
 	# Make life easier, flat x and y 
 	x_flat = x.flatten()
 	y_flat = y.flatten()
 	z_flat = z.flatten()
->>>>>>> d09ffb021658b01aac33782ec5e636e92ab55c07
 
 	# Creating design matrix. 
 	nr_of_degrees = 20
@@ -139,32 +118,5 @@ betas_test = []
 
 if __name__ == "__main__":
 	regress_and_plot_OLS('real')
-
-<<<<<<< HEAD
-# Plotting
-plt.plot(degrees, MSE_scores_tr, marker='o', label='Training MSE')
-plt.plot(degrees, MSE_scores_test, marker='x', label='Test MSE')
-plt.xlabel('Polynomial Degree')
-plt.ylabel('MSE')
-plt.title('Mean Squared Error vs. Polynomial Degree')
-plt.legend()
-plt.grid(True)
-plt.savefig("plots/MSE_OLS.pdf")
-
-# Plotting
-plt.plot(degrees, R2_scores_tr, marker='o', label='Training R2')
-plt.plot(degrees, R2_scores_test, marker='x', label='Test R2')
-plt.xlabel('Polynomial Degree')
-plt.ylabel('R2')
-plt.title('R2 vs. Polynomial Degree')
-plt.legend()
-plt.grid(True)
-plt.savefig("plots/R2_OLS.pdf")
-=======
-
->>>>>>> d09ffb021658b01aac33782ec5e636e92ab55c07
-
-
-
 
 
