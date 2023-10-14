@@ -42,7 +42,7 @@ class Franke_Regression:
 
 	def find_betas_Lasso(self, X, y, alpha):
 		# Lasso regression
-		lasso_model = Lasso(alpha = alpha, fit_intercept=False, normalize=False, max_iter=10000, tol=0.006)
+		lasso_model = Lasso(alpha = alpha, fit_intercept=False, max_iter=10000, tol=0.006)
 		lasso_model.fit(X, y)
 		return lasso_model.coef_
 

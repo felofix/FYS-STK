@@ -1,10 +1,11 @@
 from functionality import *
-from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+from imageio import imread
 
 # Same results every time. 
 np.random.seed(14)
 
-def regress_and_plot_Ridge(datatype):
+def regress_and_plot_lasso(datatype):
 	"""
 	Datatype. Real of fake?
 	Only accepts 'Real' or 'Fake'.
@@ -25,6 +26,7 @@ def regress_and_plot_Ridge(datatype):
 		x, y = np.arange(0, xlen), np.arange(0, ylen)
 		x, y = np.meshgrid(x, y)
 		z = terrain1
+		z = (z - np.mean(z)) / np.std(z)
 
 	# Make life easier, flat x and y 
 	x_flat = x.flatten()
@@ -109,4 +111,4 @@ def regress_and_plot_Ridge(datatype):
 	plt.show()
 
 if __name__ == "__main__":
-	regress_and_plot_Ridge('real')
+	regress_and_plot_lasso('real')

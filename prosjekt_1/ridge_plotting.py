@@ -28,6 +28,7 @@ def regress_and_plot_Ridge(datatype):
 		x, y = np.arange(0, xlen), np.arange(0, ylen)
 		x, y = np.meshgrid(x, y)
 		z = terrain1
+		z = (z - np.mean(z)) / np.std(z)
 
 	# Make life easier, flat x and y 
 	x_flat = x.flatten()
@@ -111,5 +112,5 @@ def regress_and_plot_Ridge(datatype):
 	plt.show()
 
 if __name__ == "__main__":
-	regress_and_plot_Ridge('generated')
+	regress_and_plot_Ridge('real')
 

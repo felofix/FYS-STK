@@ -28,6 +28,7 @@ def regress_and_plot_OLS(datatype):
 		x, y = np.arange(0, xlen), np.arange(0, ylen)
 		x, y = np.meshgrid(x, y)
 		z = terrain1
+		z = (z - np.mean(z)) / np.std(z)
 
 	# Make life easier, flat x and y 
 	x_flat = x.flatten()
@@ -35,7 +36,7 @@ def regress_and_plot_OLS(datatype):
 	z_flat = z.flatten()
 
 	# Creating design matrix. 
-	nr_of_degrees = 20
+	nr_of_degrees = 10
 	R2_scores_tr = np.zeros(nr_of_degrees)
 	MSE_scores_tr = np.zeros(nr_of_degrees)
 	betas_tr = []
@@ -44,7 +45,6 @@ def regress_and_plot_OLS(datatype):
 	betas_test = []
 
 	for degree in range(1, nr_of_degrees+1):
-		print(degree)
 		reg = Franke_Regression()
 		X = reg.create_design_matrix(x_flat, y_flat, degree)
 		X_train, X_test, z_train, z_test = train_test_split(X, z_flat, test_size=0.33, random_state=42)
@@ -73,7 +73,7 @@ def regress_and_plot_OLS(datatype):
 	degrees = np.arange(1,nr_of_degrees+1, 1)
 
 	# Plotting
-	plt.figure(figsize=(10, 6))
+	plt.figure(figsize=(7, 5))
 	plt.plot(degrees, MSE_scores_tr, marker='o', label='Training MSE')
 	plt.plot(degrees, MSE_scores_test, marker='x', label='Test MSE')
 	plt.xlabel('Polynomial Degree')
@@ -84,7 +84,7 @@ def regress_and_plot_OLS(datatype):
 	plt.savefig(f"plots/MSE_OLS_{datatype}.pdf")
 
 	# Plotting
-	plt.figure(figsize=(10, 6))
+	plt.figure(figsize=(7, 5))
 	plt.plot(degrees, R2_scores_tr, marker='o', label='Training R2')
 	plt.plot(degrees, R2_scores_test, marker='x', label='Test R2')
 	plt.xlabel('Polynomial Degree')
