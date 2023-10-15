@@ -258,9 +258,8 @@ if __name__ == "__main__":
 	### TEST ###
 	# Generate data 
 
-	datatype = 'real'
-	regressiontype = 'Ridge'
-	
+	datatype = 'generated'
+	regressiontype = 'OLS'
 	if datatype == 'generated':
 			# Generate data 
 			n = 20
@@ -277,6 +276,7 @@ if __name__ == "__main__":
 		x, y = np.arange(0, xlen), np.arange(0, ylen)
 		x, y = np.meshgrid(x, y)
 		z = terrain1
+		z = (z - np.mean(z)) / np.std(z)
 
 	# Make life easier, flat x and y 
 	x_flat = x.flatten()

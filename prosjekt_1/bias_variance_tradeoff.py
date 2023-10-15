@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 from functionality import *
 from sklearn.utils import resample
+from imageio import imread
 
 np.random.seed(14)
 
@@ -26,6 +27,8 @@ def regress_and_plot_OLS(datatype):
         x, y = np.arange(0, xlen), np.arange(0, ylen)
         x, y = np.meshgrid(x, y)
         z = terrain1
+        z = (z - np.mean(z)) / np.std(z)
+
 
     # Make life easier, flat x and y 
     x_flat = x.flatten()
@@ -59,7 +62,7 @@ def regress_and_plot_OLS(datatype):
         polydegree[degree-1] = degree
         error[degree-1] = np.mean(np.mean((z_test[:, np.newaxis] - z_pred)**2, axis=1, keepdims=True))
         bias[degree-1] = np.mean((z_test[:, np.newaxis] - np.mean(z_pred, axis=1, keepdims=True))**2)
-        variance[degree-1] = np.mean( np.var(z_pred, axis=1, keepdims=True) )
+        variance[degree-1] = np.mean(np.var(z_pred, axis=1))
 
     plt.plot(polydegree, error, 'o-', label='Error')
     plt.plot(polydegree, bias, 'o-', label='bias')
@@ -71,3 +74,4 @@ def regress_and_plot_OLS(datatype):
 
 if __name__ == "__main__":
     regress_and_plot_OLS('real')
+    regress_and_plot_OLS('generated')

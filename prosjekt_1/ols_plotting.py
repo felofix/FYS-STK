@@ -78,7 +78,7 @@ def regress_and_plot_OLS(datatype):
 	plt.plot(degrees, MSE_scores_test, marker='x', label='Test MSE')
 	plt.xlabel('Polynomial Degree')
 	plt.ylabel('MSE')
-	plt.title(f'Mean Squared Error vs. Polynomial Degree with {datatype} data')
+	plt.title(f'Mean Squared Error vs. Polynomial Degree with {datatype} data using OLS')
 	plt.legend()
 	plt.grid(True)
 	plt.savefig(f"plots/MSE_OLS_{datatype}.pdf")
@@ -89,34 +89,33 @@ def regress_and_plot_OLS(datatype):
 	plt.plot(degrees, R2_scores_test, marker='x', label='Test R2')
 	plt.xlabel('Polynomial Degree')
 	plt.ylabel('R2')
-	plt.title(f'R2 vs. Polynomial Degree with {datatype} data')
+	plt.title(f'R2 vs. Polynomial Degree with {datatype} data using OLS' )
 	plt.legend()
 	plt.grid(True)
 	plt.savefig(f"plots/R2_OLS_{datatype}.pdf")
 
-	"""
-	fig, ax = plt.subplots(figsize=(10, 6))
-
-	# Define a color map to have different colors for different degrees
+	
+	fig, ax = plt.subplots(figsize=(7, 5))
 	colors = ['blue', 'green', 'red', 'purple', 'black']
 
-	for degree, betas_degree in enumerate(betas_tr, 1):
-	    x_vals = np.arange(len(betas_degree))
-	    ax.scatter(x_vals, betas_degree, marker='o', color=colors[degree-1], label=f'Degree {degree}')
-	    ax.vlines(x_vals, 0, betas_degree, color=colors[degree-1], linestyle='--', lw=1)  
+	for degree, betas_degree in enumerate(betas_tr[:5], 1):
+		color = colors[(degree-1) % len(colors)]  
+		x_vals = np.arange(len(betas_degree))
+		ax.scatter(x_vals, betas_degree, marker='o', color=color, label=f'Degree {degree}')
+		ax.vlines(x_vals, 0, betas_degree, color=color, linestyle='--', lw=1)
 
 	ax.set_xlabel('$\\beta_j$')
 	ax.set_ylabel('Coefficient Value')
-	ax.set_title('Beta Coefficients')
+	ax.set_title(f'Beta Coefficients for {datatype} data')
 	ax.legend()
 	ax.grid(True)
 
 	plt.tight_layout()
 	plt.xticks(np.arange(0, 21, step=1))
-	plt.savefig("plots/beta_coefficents.pdf")
-	"""
-
+	plt.savefig(f"plots/beta_coefficents__{datatype}.pdf")
+	
 if __name__ == "__main__":
 	regress_and_plot_OLS('real')
+	regress_and_plot_OLS('generated')
 
 
