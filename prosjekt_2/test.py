@@ -16,11 +16,8 @@ def create_design_matrix(x, order):
 x = np.linspace(0, 10, 100)
 y = x*x + 2*x 
 X = create_design_matrix(x, 2)
-FNNN = nn.FNNN(X, y)
+FNNN = nn.FNNN(X, y, epochs=10)
 FNNN.train()
-
-
-
 
 """ # Plotting. 
 import matplotlib.pyplot as plt
