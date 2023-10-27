@@ -1,9 +1,13 @@
 import numpy as np 
-import neural_network as nn
+import ffnn as nn
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neural_network import MLPClassifier, MLPRegressor
+from sklearn.metrics import mean_squared_error
 
 def create_design_matrix(x, order):
-	""" Only for testing. 
-	"""
 	order += 1
 
 	X = np.zeros((len(x), order))
@@ -13,14 +17,34 @@ def create_design_matrix(x, order):
 		
 	return X
 
-x = np.linspace(0, 10, 100)
-y = x*x + 2*x 
+n = 1000
+x = np.random.rand(n)
+sorted_inds = np.argsort(x, axis=0).ravel()
+y = x*x
 X = create_design_matrix(x, 2)
-FNNN = nn.FNNN(X, y, epochs=10)
-FNNN.train()
+scaler = StandardScaler()
+scaler.fit(X)
+Xscaled = scaler.transform(X)
+X = Xscaled
+Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, test_size=0.2)
+ffnn = nn.FFNN(Xtrain, ytrain, epochs=200, n_outputs=1, eta=0.001, n_hidden_layers=2, n_hidden_neurons = 5)
+ffnn.train()
+ypred = ffnn.predict()
+print(mean_squared_error(ytrain, ypred))
 
-""" # Plotting. 
-import matplotlib.pyplot as plt
-plt.plot(x, y)
-plt.show()
+
+"""
+# Random seed. 
+np.random.seed(0)
+
+# Design matrix.
+X = np.array([[0, 0], [0, 1], [1, 0],[1, 1]],dtype=np.float64)
+
+# Outputs. 
+xor_gate = np.array([[1, 0], [0, 1], [0, 1], [1, 0]])
+and_gate = np.array([[1, 0], [1, 0], [1, 0], [0, 1]])
+or_gate  = np.array([[1, 0], [0, 1], [0, 1], [0, 1]])
+
+ffnn = nn.FFNN(X, xor_gate, eta=0.1,lmbd=0.01, epochs = 1, softmax=True, n_hidden_neurons=2, n_hidden_layers=2)
+ffnn.train()
 """
