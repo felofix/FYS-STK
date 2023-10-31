@@ -1,5 +1,7 @@
 import numpy as np 
 from sklearn.metrics import mean_squared_error, r2_score
+from tqdm import tqdm
+import activations as act
 
 # ensure the same random numbers appear every time
 np.random.seed(0)
@@ -15,7 +17,9 @@ class FFNN:
             batch_size = 100,
             eta = 0.1,
             lmbd = 0.0,
-            softmax = False):
+            softmax = False,
+            activation_function = act.sigmoid,
+            opacity = 100):
         
         # Data. 
         self.X_data_full = X_data
@@ -30,6 +34,11 @@ class FFNN:
         self.softmax = softmax
         self.activation_layers = list(np.zeros(n_hidden_layers   + 1))
         self.layers = []
+        self.mse = []
+        self.r2 = []
+        self.accuracies = []
+        self.opacity = opacity
+        self.activation_function = activation_function
 
         # Hyperparameters. 
         self.epochs = epochs
@@ -40,13 +49,22 @@ class FFNN:
 
         self.create_biases_and_weights()
 
-    def train(self):
+    def train(self, X, y):
         # Trains the neural network for x number of epochs. 
 
-        for epoch in range(self.epochs):
+        for epoch in tqdm(range(self.epochs), desc="Processing epochs"):
             self.forward()
             self.backward()
-
+            
+            if epoch % self.opacity == 0:
+                if self.softmax:
+                    self.accuracies.append(self.accuracy(y, self.cat_predict()))
+                    continue
+                else:
+                    ypred = self.predict(X)
+                    self.mse.append(self.MSE(ypred, y))
+                    self.r2.append(self.R2(ypred, y))
+            
     def create_biases_and_weights(self):
         # Creating biases and weights. 
 
@@ -75,7 +93,7 @@ class FFNN:
         # Hidden layer.
         for i in range(1, self.n_hidden_layers + 1):
             self.z_h = self.activation_layers[i - 1]@self.weights[i - 1] + self.biases[i - 1]
-            self.activation_layers[i] = self.sigmoid(self.z_h)
+            self.activation_layers[i] = self.activation_function(self.z_h)
 
         self.z_o = self.activation_layers[-1]@self.weights[-1] + self.biases[-1]
 
@@ -96,7 +114,7 @@ class FFNN:
         # Output.
         weight_grad = self.activation_layers[-1].T @ error + self.regularization(self.weights[-1])
         bias_grad =  np.sum(error, axis=0)
-        error = error @ self.weights[-1].T + self.classification(self.activation_layers[-1])
+        error = error @ self.weights[-1].T * self.classification(self.activation_layers[-1])
         self.weights[-1] -= weight_grad*self.eta
         self.biases[-1] -= bias_grad*self.eta
 
@@ -108,11 +126,30 @@ class FFNN:
             error = error @ self.weights[i].T
 
     def cat_predict(self):
-        return np.argmax(self.probabilities, axis=1)
+        return np.round(self.probabilities)
 
-    def predict(self):
-        self.forward()
-        return self.z_o
+    def predict(self, X):
+        # Input layer.
+        act_layers = list(np.zeros(len(self.activation_layers)))
+
+        z_h = X                        
+        act_layers[0] = z_h              
+
+        # Hidden layer.
+        for i in range(1, self.n_hidden_layers + 1):
+            z_h = act_layers[i - 1]@self.weights[i - 1] + self.biases[i - 1]
+            act_layers[i] = self.sigmoid(z_h)
+
+        z_o = act_layers[-1]@self.weights[-1] + self.biases[-1]
+
+        # Output layer.
+        if self.softmax:
+            exp = np.exp(z_o)
+            probabilities = exp/(np.sum(exp, axis=1, keepdims=True))
+            return probabilities
+
+        else:
+            return z_o
 
     def sigmoid(self, w):
         # Sigmoid function. 
@@ -120,11 +157,10 @@ class FFNN:
 
     def classification(self, w):
         if self.softmax:
-            v = self.sigmoid(w)
-            return 1 - v
+            #v = self.sigmoid(w)
+            return w * (1 - w)
         else:
-            return 0
-
+            return 1
 
     def MSE(self, y, y_pred):
         # MSE.
@@ -133,6 +169,11 @@ class FFNN:
     def R2(self, y, y_pred):
         # R2.
         return r2_score(y, y_pred)
+
+    def accuracy(self, y, y_pred):
+        n = len(y)
+        correct = n - np.sum(np.abs(y - y_pred))
+        return correct/n
 
     def regularization(self, w):
         """
@@ -152,3 +193,5 @@ class FFNN:
 
         error = output - self.Y_data_full.reshape(output.shape)
         return error
+
+
