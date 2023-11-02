@@ -85,8 +85,8 @@ if __name__ == '__main__':
 				mses[i, j] = np.min(ffnn.mse)
 				r2s[i, j] = np.min(ffnn.r2)
 
-		p.plot_heatmap(mses, etas, lmbds, f'mse_heatmap_{a}.pdf')
-		p.plot_heatmap(mses, etas, lmbds, f'mse_heatmap_{a}.pdf')
+		p.plot_heatmap(mses, etas, lmbds, f'mse_heatmap_Franke_{a}.pdf')
+		p.plot_heatmap(mses, etas, lmbds, f'mse_heatmap_Franke_{a}.pdf')
 
 
 

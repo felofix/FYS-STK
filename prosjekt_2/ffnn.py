@@ -58,8 +58,7 @@ class FFNN:
             
             if epoch % self.opacity == 0:
                 if self.softmax:
-                    self.accuracies.append(self.accuracy(y, self.cat_predict()))
-                    continue
+                    self.accuracies.append(self.accuracy(y, self.cat_predict(self.predict(X))))
                 else:
                     ypred = self.predict(X)
                     self.mse.append(self.MSE(ypred, y))
@@ -125,8 +124,8 @@ class FFNN:
             self.biases[i] -= bias_grad*self.eta
             error = error @ self.weights[i].T
 
-    def cat_predict(self):
-        return np.round(self.probabilities)
+    def cat_predict(self, probabilities):
+        return np.round(probabilities)
 
     def predict(self, X):
         # Input layer.
@@ -157,7 +156,6 @@ class FFNN:
 
     def classification(self, w):
         if self.softmax:
-            #v = self.sigmoid(w)
             return w * (1 - w)
         else:
             return 1
