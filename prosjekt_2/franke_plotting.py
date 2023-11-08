@@ -6,6 +6,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
 import plotting as p
 import activations as act
+import tensorffnn as ts
 
 def FrankeFunction(x, y):
 	term1 = 0.75 * np.exp(-(0.25 * (9 * x - 2) ** 2) - 0.25 * ((9 * y - 2) ** 2))
@@ -53,18 +54,18 @@ if __name__ == '__main__':
 	X = Xscaled
 	Xtrain, Xtest, ytrain, ytest = train_test_split(X, z, test_size=0.2)
 
-	# MSE vs epoch to find optimal epoch.
-	ffnn = nn.FFNN(Xtrain, ytrain, epochs=2000, n_outputs=1, eta=1e-5,lmbd=0.1, n_hidden_layers=2, n_hidden_neurons = 5)
+	# Plotting optimaal epochs. 
+	ffnn = nn.FFNN(Xtrain, ytrain, epochs=4000, n_outputs=1, eta=1e-5,lmbd=0.1, n_hidden_layers=2, n_hidden_neurons = 5)
 	ffnn.train(Xtest, ytest)
-	mses = ffnn.mse 
-	epochs = np.arange(len(mses))*100
+	msesog = ffnn.mse 
+	epochs = np.arange(len(msesog))*100
 
-	# 1000 seems to do the trick. 
-	p.plot_mse_vs_epochs(epochs, mses, "plots/mse_epoch_Franke.pdf")
+	p.plot_mse_vs_epochs(epochs, msesog, "epochs_mse_franke.pdf")
 
+	# Plotting heatmaps. 
 	etas = [1e-9, 1e-8, 1e-7, 1e-6, 1e-5]
 	lmbds = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2]
-	activation_functions = {'sigmoid': act.sigmoid, 'relu': act.RELU, 'lrelu': act.LRELU}
+	activation_functions = {'sigmoid': act.sigmoid}#, 'relu': act.RELU, 'lrelu': act.LRELU}
 
 	for a in activation_functions:
 		mses = np.zeros((len(etas), len(lmbds)))
@@ -74,7 +75,7 @@ if __name__ == '__main__':
 			for j in range(len(lmbds)):
 				ffnn = nn.FFNN(Xtrain, 
 							   ytrain, 
-							   epochs=100, 
+							   epochs=500, 
 							   n_outputs=1, 
 							   eta=etas[i],
 							   lmbd=lmbds[j], 
@@ -87,13 +88,14 @@ if __name__ == '__main__':
 
 		p.plot_heatmap(mses, etas, lmbds, f'mse_heatmap_Franke_{a}.pdf')
 		p.plot_heatmap(mses, etas, lmbds, f'mse_heatmap_Franke_{a}.pdf')
+	
+	# Plotting vs tensorflow. 
+	tsnn = ts.FFNN(n_features = Xtrain.shape[1], n_outputs=1, n_hidden_layers=2, n_hidden_neurons=5, lmbd=0.1, eta=1e-5, epochs=4000)
+	tsnn.train(Xtest, ytest)
+	msests = tsnn.mses
 
-
-
-
-
-
-
+	p.plot_mse_vs_tensorflow(epochs, msesog, msests, "our_ffnn_vs_tensorflow_franke.pdf")
+	
 
 
 

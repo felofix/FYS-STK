@@ -52,10 +52,23 @@ class FFNN:
     def train(self, X, y):
         # Trains the neural network for x number of epochs. 
 
+        self.X = self.X_data_full
+        self.y = self.Y_data_full
+
+        number_batches = int(self.n_inputs/self.batch_size)
+        indeces = np.arange(self.n_inputs)
+
         for epoch in tqdm(range(self.epochs), desc="Processing epochs"):
-            self.forward()
-            self.backward()
+            random_indeces = np.random.choice(indeces, replace=False, size=indeces.size) #shuffle the data
+            batches = np.array_split(random_indeces, number_batches)
             
+            for b in range(number_batches):
+                self.X = self.X_data_full[batches[b]]
+                self.y = self.Y_data_full[batches[b]]
+
+                self.forward()
+                self.backward()
+
             if epoch % self.opacity == 0:
                 if self.softmax:
                     self.accuracies.append(self.accuracy(y, self.cat_predict(self.predict(X))))
@@ -84,9 +97,9 @@ class FFNN:
 
     def forward(self):
         # Moving the neural network forwards.
-
+        
         # Input layer.
-        self.z_h = self.X_data_full                         
+        self.z_h = self.X                         
         self.activation_layers[0] = self.z_h              
 
         # Hidden layer.
@@ -105,10 +118,10 @@ class FFNN:
         # Moving the neural network backwards.
         
         if self.softmax: # Categorization. 
-            error = self.probabilities - self.Y_data_full
+            error = self.probabilities - self.y
 
         else: # Regular regression. 
-            error = self.z_o - self.Y_data_full.reshape(self.z_o.shape)
+            error = self.z_o - self.y.reshape(self.z_o.shape)
 
         # Output.
         weight_grad = self.activation_layers[-1].T @ error + self.regularization(self.weights[-1])

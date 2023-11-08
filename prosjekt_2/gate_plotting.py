@@ -1,6 +1,7 @@
 import numpy as np
 import ffnn as nn
 import plotting as p
+import activations as act
 
 # Random seed. 
 np.random.seed(0)
@@ -22,8 +23,36 @@ for gate in gates:
 
 	for i in range(len(etas)):
 		for j in range(len(lmbds)):
-			ffnn = nn.FFNN(X, gates[gate], epochs=1000, eta=etas[i], lmbd=lmbds[j], n_hidden_layers=1, n_hidden_neurons = 2, softmax=True)
+			ffnn = nn.FFNN(X, gates[gate], epochs=1000,
+						   eta=etas[i], lmbd=lmbds[j], n_hidden_layers=1, 
+						   n_hidden_neurons = 2, softmax=True, batch_size=1, activation_function=act.sigmoid)
 			ffnn.train(X, gates[gate])
 			accuracies[i, j] = np.max(ffnn.accuracies)
 
-	p.plot_heatmap(accuracies, etas, lmbds, f'mse_heatmap_{gate}.pdf')
+	p.plot_heatmap(accuracies, etas, lmbds, f'mse_heatmap_{gate}_sigmoid.pdf')
+
+for gate in gates:
+	accuracies = np.zeros((len(etas), len(lmbds)))
+
+	for i in range(len(etas)):
+		for j in range(len(lmbds)):
+			ffnn = nn.FFNN(X, gates[gate], epochs=1000,
+						   eta=etas[i], lmbd=lmbds[j], n_hidden_layers=1, 
+						   n_hidden_neurons = 2, softmax=True, batch_size=1, activation_function=act.RELU)
+			ffnn.train(X, gates[gate])
+			accuracies[i, j] = np.max(ffnn.accuracies)
+
+	p.plot_heatmap(accuracies, etas, lmbds, f'mse_heatmap_{gate}_relu.pdf')
+
+for gate in gates:
+	accuracies = np.zeros((len(etas), len(lmbds)))
+
+	for i in range(len(etas)):
+		for j in range(len(lmbds)):
+			ffnn = nn.FFNN(X, gates[gate], epochs=1000,
+						   eta=etas[i], lmbd=lmbds[j], n_hidden_layers=1, 
+						   n_hidden_neurons = 2, softmax=True, batch_size=1, activation_function=act.LRELU)
+			ffnn.train(X, gates[gate])
+			accuracies[i, j] = np.max(ffnn.accuracies)
+
+	p.plot_heatmap(accuracies, etas, lmbds, f'mse_heatmap_{gate}_lrelu.pdf')

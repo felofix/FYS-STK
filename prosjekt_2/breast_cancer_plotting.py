@@ -7,6 +7,7 @@ from sklearn.metrics import mean_squared_error
 from sklearn.datasets import load_breast_cancer
 import plotting as p
 import activations as act
+import tensorffnn as ts
 
 def binary_preprocessing(target_values):
 	"""
@@ -34,26 +35,35 @@ scaler.fit(X)
 Xscaled = scaler.transform(X)
 X = Xscaled
 Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, test_size=0.2)
-activation_functions = {'sigmoid': act.sigmoid, 'relu': act.RELU, 'lrelu': act.LRELU}
-etas = [1e-4, 1e-3, 1e-2, 1e-1, 1]
-lmbds = [1e-4, 1e-3, 1e-2, 1e-1, 1]
+etas = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
+lmbds = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
 
+accuracies_our = np.zeros((len(etas), len(lmbds)))
+accuracies_tsnn = np.zeros((len(etas), len(lmbds)))
 
-for a in activation_functions:
-		accuracies = np.zeros((len(etas), len(lmbds)))
+for i in range(len(etas)):
+	for j in range(len(lmbds)):
+		ffnn = nn.FFNN(Xtrain,
+					   ytrain,
+					   epochs=500, 
+					   n_hidden_layers=1, 
+					   eta=etas[i],
+					   lmbd=lmbds[j], 
+					   n_hidden_neurons = 20,
+					   softmax=True)
 
-		for i in range(len(etas)):
-			for j in range(len(lmbds)):
-				ffnn = nn.FFNN(Xtrain,
-							   ytrain,
-							   epochs=500, 
-							   n_hidden_layers=1, 
-							   eta=etas[i],
-							   lmbd=lmbds[j], 
-							   n_hidden_neurons = 20,
-							   softmax=True,
-							    activation_function=activation_functions[a])
-				ffnn.train(Xtest, ytest)
-				accuracies[i, j] = np.max(ffnn.accuracies)
+		tsnn = ts.FFNN(n_features = Xtrain.shape[1],  
+					  n_hidden_layers=1, 
+					  n_hidden_neurons=20, 
+					  eta=etas[i],
+					  lmbd=lmbds[j],
+					  epochs=500,
+					  softmax=True)
 
-		p.plot_heatmap(accuracies, etas, lmbds, f'mse_heatmap_{a}.pdf')
+		ffnn.train(Xtest, ytest)
+		tsnn.train(Xtest, ytest)
+		accuracies_our[i, j] = np.max(ffnn.accuracies)
+		accuracies_tsnn[i, j] = np.max(tsnn.accuracies)
+
+p.plot_heatmap(accuracies_our, etas, lmbds, f'mse_heatmap_Cancer_sigmoid.pdf')
+p.plot_heatmap(accuracies_tsnn, etas, lmbds, f'mse_heatmap_Cancer_sigmoid_scikit.pdf')
