@@ -19,7 +19,8 @@ class FFNN:
             lmbd = 0.0,
             softmax = False,
             activation_function = act.sigmoid,
-            opacity = 100):
+            opacity = 100,
+            verbose = True):
         
         # Data. 
         self.X_data_full = X_data
@@ -39,6 +40,7 @@ class FFNN:
         self.accuracies = []
         self.opacity = opacity
         self.activation_function = activation_function
+        self.verbose = verbose
 
         # Hyperparameters. 
         self.epochs = epochs
@@ -58,24 +60,45 @@ class FFNN:
         number_batches = int(self.n_inputs/self.batch_size)
         indeces = np.arange(self.n_inputs)
 
-        for epoch in tqdm(range(self.epochs), desc="Processing epochs"):
-            random_indeces = np.random.choice(indeces, replace=False, size=indeces.size) #shuffle the data
-            batches = np.array_split(random_indeces, number_batches)
-            
-            for b in range(number_batches):
-                self.X = self.X_data_full[batches[b]]
-                self.y = self.Y_data_full[batches[b]]
 
-                self.forward()
-                self.backward()
+        if self.verbose:
+            for epoch in tqdm(range(self.epochs), desc="Processing epochs"):
+                random_indeces = np.random.choice(indeces, replace=False, size=indeces.size) #shuffle the data
+                batches = np.array_split(random_indeces, number_batches)
+                
+                for b in range(number_batches):
+                    self.X = self.X_data_full[batches[b]]
+                    self.y = self.Y_data_full[batches[b]]
 
-            if epoch % self.opacity == 0:
-                if self.softmax:
-                    self.accuracies.append(self.accuracy(y, self.cat_predict(self.predict(X))))
-                else:
-                    ypred = self.predict(X)
-                    self.mse.append(self.MSE(ypred, y))
-                    self.r2.append(self.R2(ypred, y))
+                    self.forward()
+                    self.backward()
+
+                if epoch % self.opacity == 0:
+                    if self.softmax:
+                        self.accuracies.append(self.accuracy(y, self.cat_predict(self.predict(X))))
+                    else:
+                        ypred = self.predict(X)
+                        self.mse.append(self.MSE(ypred, y))
+                        self.r2.append(self.R2(ypred, y))
+        else:
+            for epoch in range(self.epochs):
+                random_indeces = np.random.choice(indeces, replace=False, size=indeces.size) #shuffle the data
+                batches = np.array_split(random_indeces, number_batches)
+                
+                for b in range(number_batches):
+                    self.X = self.X_data_full[batches[b]]
+                    self.y = self.Y_data_full[batches[b]]
+
+                    self.forward()
+                    self.backward()
+
+                if epoch % self.opacity == 0:
+                    if self.softmax:
+                        self.accuracies.append(self.accuracy(y, self.cat_predict(self.predict(X))))
+                    else:
+                        ypred = self.predict(X)
+                        self.mse.append(self.MSE(ypred, y))
+                        self.r2.append(self.R2(ypred, y))
             
     def create_biases_and_weights(self):
         # Creating biases and weights. 
@@ -150,8 +173,8 @@ class FFNN:
         # Hidden layer.
         for i in range(1, self.n_hidden_layers + 1):
             z_h = act_layers[i - 1]@self.weights[i - 1] + self.biases[i - 1]
-            act_layers[i] = self.sigmoid(z_h)
-
+            act_layers[i] = self.activation_function(z_h)
+            
         z_o = act_layers[-1]@self.weights[-1] + self.biases[-1]
 
         # Output layer.
@@ -162,10 +185,6 @@ class FFNN:
 
         else:
             return z_o
-
-    def sigmoid(self, w):
-        # Sigmoid function. 
-        return 1/(1 + np.exp(-w))
 
     def classification(self, w):
         if self.softmax:

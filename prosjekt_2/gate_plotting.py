@@ -7,52 +7,34 @@ import activations as act
 np.random.seed(0)
 
 # Design matrix.
-X = np.array([[0, 0], [0, 1], [1, 0],[1, 1]],dtype=np.float64)
+X = np.array([[0, 0], [0, 1], [1, 0],[1, 1]], dtype=np.float64)
 
 # Outputs. 
 xor_gate = np.array([[1, 0], [0, 1], [0, 1], [1, 0]])
 and_gate = np.array([[1, 0], [1, 0], [1, 0], [0, 1]])
 or_gate  = np.array([[1, 0], [0, 1], [0, 1], [0, 1]])
 gates = {'xor_gate': xor_gate, 'and_gate': and_gate, 'or_gate': or_gate}
+activations = {'sigmoid': act.sigmoid, 'relu': act.RELU,  'lrelu': act.LRELU}
 
 etas = [1e-4, 1e-3, 1e-2, 1e-1, 1]
 lmbds = [1e-4, 1e-3, 1e-2, 1e-1, 1]
 
-for gate in gates:
-	accuracies = np.zeros((len(etas), len(lmbds)))
+for activation in activations:
+	for gate in gates:
+		accuracies = np.zeros((len(etas), len(lmbds)))
 
-	for i in range(len(etas)):
-		for j in range(len(lmbds)):
-			ffnn = nn.FFNN(X, gates[gate], epochs=1000,
-						   eta=etas[i], lmbd=lmbds[j], n_hidden_layers=1, 
-						   n_hidden_neurons = 2, softmax=True, batch_size=1, activation_function=act.sigmoid)
-			ffnn.train(X, gates[gate])
-			accuracies[i, j] = np.max(ffnn.accuracies)
+		for i in range(len(etas)):
+			for j in range(len(lmbds)):
+				ffnn = nn.FFNN(X, gates[gate], epochs=1000,
+							   eta=etas[i], lmbd=lmbds[j], n_hidden_layers=1, 
+							   n_hidden_neurons = 2, softmax=True, batch_size=1, 
+							   activation_function=activations[activation], verbose=False)
+				ffnn.train(X, gates[gate])
+				accuracies[i, j] = np.max(ffnn.accuracies)
 
-	p.plot_heatmap(accuracies, etas, lmbds, f'mse_heatmap_{gate}_sigmoid.pdf')
+		if activation == 'sigmoid' and gate == 'xor_gate':
+			p.plot_heatmap(accuracies, etas, lmbds, 'accuracy_heatmap_sigmoid_xor_gate.pdf')
 
-for gate in gates:
-	accuracies = np.zeros((len(etas), len(lmbds)))
-
-	for i in range(len(etas)):
-		for j in range(len(lmbds)):
-			ffnn = nn.FFNN(X, gates[gate], epochs=1000,
-						   eta=etas[i], lmbd=lmbds[j], n_hidden_layers=1, 
-						   n_hidden_neurons = 2, softmax=True, batch_size=1, activation_function=act.RELU)
-			ffnn.train(X, gates[gate])
-			accuracies[i, j] = np.max(ffnn.accuracies)
-
-	p.plot_heatmap(accuracies, etas, lmbds, f'mse_heatmap_{gate}_relu.pdf')
-
-for gate in gates:
-	accuracies = np.zeros((len(etas), len(lmbds)))
-
-	for i in range(len(etas)):
-		for j in range(len(lmbds)):
-			ffnn = nn.FFNN(X, gates[gate], epochs=1000,
-						   eta=etas[i], lmbd=lmbds[j], n_hidden_layers=1, 
-						   n_hidden_neurons = 2, softmax=True, batch_size=1, activation_function=act.LRELU)
-			ffnn.train(X, gates[gate])
-			accuracies[i, j] = np.max(ffnn.accuracies)
-
-	p.plot_heatmap(accuracies, etas, lmbds, f'mse_heatmap_{gate}_lrelu.pdf')
+		print(f'Best acc: {np.nanmax(accuracies*100):.2f}')
+		print(f'Activation function: {activation}')
+		print(f'Gate: {gate}')

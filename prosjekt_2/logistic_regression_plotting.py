@@ -46,14 +46,14 @@ for i in range(len(etas)):
 		ffnn = nn.FFNN(Xtrain,
 					   ytrain,
 					   epochs=1000, 
-					   n_hidden_layers=1, 
+					   n_hidden_layers=0, 
 					   eta=etas[i],
 					   lmbd=lmbds[j], 
 					   n_hidden_neurons = 2,
 					   softmax=True)
 
 		tsnn = ts.FFNN(n_features = Xtrain.shape[1],  
-					  n_hidden_layers=1, 
+					  n_hidden_layers=0, 
 					  n_hidden_neurons=2, 
 					  eta=etas[i],
 					  lmbd=lmbds[j],
@@ -65,5 +65,5 @@ for i in range(len(etas)):
 		accuracies_our[i, j] = np.max(ffnn.accuracies)
 		accuracies_tsnn[i, j] = np.max(tsnn.accuracies)
 
-p.plot_heatmap(accuracies_our, etas, lmbds, f'mse_heatmap_Cancer_sigmoid.pdf')
-p.plot_heatmap(accuracies_tsnn, etas, lmbds, f'mse_heatmap_Cancer_sigmoid_scikit.pdf')
+p.plot_heatmap(accuracies_our, etas, lmbds, f'mse_heatmap_Cancer_sigmoid_log_regression.pdf')
+p.plot_heatmap(accuracies_tsnn, etas, lmbds, f'mse_heatmap_Cancer_sigmoid_log_regression_scikit.pdf')

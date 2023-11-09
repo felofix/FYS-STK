@@ -44,9 +44,9 @@ if __name__ == '__main__':
 	# Make life easier, flat x and y.
 	x = x.flatten()
 	y = y.flatten()
-	z = z.flatten()
+	z = z.flatten()	
 
-	X = create_design_matrix(x, y, 3)
+	X = create_design_matrix(x, y, 4)
 
 	scaler = StandardScaler()
 	scaler.fit(X)
@@ -95,7 +95,6 @@ if __name__ == '__main__':
 	msests = tsnn.mses
 
 	p.plot_mse_vs_tensorflow(epochs, msesog, msests, "our_ffnn_vs_tensorflow_franke.pdf")
-	
 
 
 
