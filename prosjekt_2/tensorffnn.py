@@ -92,3 +92,18 @@ class FFNN:
     def get_r2(self, y_true, y_pred):
         return r2_score(y_true, y_pred)
 
+class LogisticRegression(FFNN):
+    def _build_model(self, activation_function):
+        model = tf.keras.models.Sequential()
+        
+        # Input layer with sigmoid activation function
+        model.add(tf.keras.layers.Dense(self.n_features, activation=activation_function, kernel_regularizer=tf.keras.regularizers.l2(self.lmbd)))
+        
+        # Output layer with sigmoid activation function
+        model.add(tf.keras.layers.Dense(self.n_outputs, activation='sigmoid'))
+        
+        # Compile the model for binary classification
+        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.eta), loss='binary_crossentropy', metrics=['accuracy'])
+        
+        return model
+

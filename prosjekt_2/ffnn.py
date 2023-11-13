@@ -1,7 +1,8 @@
 import numpy as np 
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_squared_error, r2_score, accuracy_score
 from tqdm import tqdm
 import activations as act
+
 
 # ensure the same random numbers appear every time
 np.random.seed(0)
@@ -201,9 +202,8 @@ class FFNN:
         return r2_score(y, y_pred)
 
     def accuracy(self, y, y_pred):
-        n = len(y)
-        correct = n - np.sum(np.abs(y - y_pred))
-        return correct/n
+        acc = accuracy_score(y, y_pred)
+        return acc
 
     def regularization(self, w):
         """
@@ -223,5 +223,76 @@ class FFNN:
 
         error = output - self.Y_data_full.reshape(output.shape)
         return error
+
+class LogisticRegression(FFNN):
+    def create_biases_and_weights(self):
+        # Creating biases and weights. 
+
+        self.weights = []
+        self.biases = []
+
+        self.weights.append(np.random.randn(self.n_features, self.n_outputs))
+        self.biases.append(np.zeros_like(self.n_outputs, dtype=np.float64) + 0.01)
+
+
+    def forward(self):
+        # Moving the neural network forwards.
+        
+        # Input layer.
+        self.z_h = self.X                         
+        self.activation_layers[0] = self.z_h              
+        self.z_o = self.activation_function(self.activation_layers[-1]@self.weights[-1] + self.biases[-1])
+        self.z_o = self.cat_predict(self.z_o)
+
+    def train(self, X, y):
+        # Trains the neural network for x number of epochs. 
+
+        self.X = self.X_data_full
+        self.y = self.Y_data_full
+
+        number_batches = int(self.n_inputs/self.batch_size)
+        indeces = np.arange(self.n_inputs)
+
+
+        if self.verbose:
+            for epoch in tqdm(range(self.epochs), desc="Processing epochs"):
+                random_indeces = np.random.choice(indeces, replace=False, size=indeces.size) #shuffle the data
+                batches = np.array_split(random_indeces, number_batches)
+                
+                for b in range(number_batches):
+                    self.X = self.X_data_full[batches[b]]
+                    self.y = self.Y_data_full[batches[b]]
+
+                    self.forward()
+                    self.backward()
+
+                if epoch % self.opacity == 0:
+                    ypred = self.predict(X)
+                    self.accuracies.append(self.accuracy(y, ypred))
+
+        else:
+            for epoch in range(self.epochs):
+                random_indeces = np.random.choice(indeces, replace=False, size=indeces.size) #shuffle the data
+                batches = np.array_split(random_indeces, number_batches)
+                
+                for b in range(number_batches):
+                    self.X = self.X_data_full[batches[b]]
+                    self.y = self.Y_data_full[batches[b]]
+
+                    self.forward()
+                    self.backward()
+
+                if epoch % self.opacity == 0:
+                    ypred = self.predict(X)
+                    self.accuracies.append(self.accuracy(y, ypred))
+
+    def predict(self, X):
+        # Input layer.
+        act_layers = list(np.zeros(len(self.activation_layers)))
+
+        z_h = X                        
+        act_layers[0] = z_h              
+        z_o = self.activation_function(act_layers[-1]@self.weights[-1] + self.biases[-1])
+        return np.round(z_o)
 
 

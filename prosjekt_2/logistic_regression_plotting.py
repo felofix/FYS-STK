@@ -9,26 +9,11 @@ import plotting as p
 import activations as act
 import tensorffnn as ts
 
-def binary_preprocessing(target_values):
-	"""
-	Necassery step for the preprocesseing of data. 
-	"""
-
-	processed = np.zeros((len(target_values), 2))
-	
-	for target in range(len(target_values)):
-		if target_values[target] == 0:
-			processed[target, 0] = 1
-		elif target_values[target] == 1:
-			processed[target, 1] = 1
-
-	return processed
-
 database = load_breast_cancer()
 data = database['data']
 targets = database['target']
 X = data
-y = binary_preprocessing(targets)
+y = targets
 
 scaler = StandardScaler()
 scaler.fit(X)
@@ -43,26 +28,29 @@ accuracies_tsnn = np.zeros((len(etas), len(lmbds)))
 
 for i in range(len(etas)):
 	for j in range(len(lmbds)):
-		ffnn = nn.FFNN(Xtrain,
+		logreg = nn.LogisticRegression(Xtrain,
 					   ytrain,
-					   epochs=1000, 
+					   epochs=2000, 
 					   n_hidden_layers=0, 
+					   n_outputs = 1,
 					   eta=etas[i],
 					   lmbd=lmbds[j], 
 					   n_hidden_neurons = 2,
-					   softmax=True)
-
-		tsnn = ts.FFNN(n_features = Xtrain.shape[1],  
+					   softmax=False)
+		
+		tsnn = ts.LogisticRegression(n_features = Xtrain.shape[1],  
 					  n_hidden_layers=0, 
 					  n_hidden_neurons=2, 
+					  n_outputs=1,
 					  eta=etas[i],
 					  lmbd=lmbds[j],
 					  epochs=1000,
 					  softmax=True)
+		
 
-		ffnn.train(Xtest, ytest)
+		logreg.train(Xtest, ytest)
 		tsnn.train(Xtest, ytest)
-		accuracies_our[i, j] = np.max(ffnn.accuracies)
+		accuracies_our[i, j] = np.max(logreg.accuracies)
 		accuracies_tsnn[i, j] = np.max(tsnn.accuracies)
 
 p.plot_heatmap(accuracies_our, etas, lmbds, f'mse_heatmap_Cancer_sigmoid_log_regression.pdf')
