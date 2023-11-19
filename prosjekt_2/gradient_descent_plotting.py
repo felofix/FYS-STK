@@ -164,11 +164,12 @@ def compare_momentum(optimal_lr, optimal_lr_momentum, max_epochs):
         error_momentum.append(error)
         
     plt.figure(figsize=(10, 6))
-    plt.plot(np.arange(0, len(error_standard), 1), error_standard, label='Standard Gradient Descent')
     plt.plot(np.arange(0, len(error_momentum), 1), error_momentum, label='Gradient Descent with Momentum')
+    plt.plot(np.arange(0, len(error_standard), 1), error_standard, label='Standard Gradient Descent')
+    plt.legend()
     plt.xlabel('Epochs')
     plt.ylabel('MSE Error')
-    plt.title('Error Comparison over Epochs')
+    plt.title('Error Comparison over Epochs')c
     plt.savefig("plots/momentum_comparison.pdf")
 
 
@@ -281,5 +282,5 @@ def ridge_plotting(learning_rates, lamb_values):
 
 
 ridge_plotting(learning_rates, lamb_values)
-compare_momentum(0.01, 0.01, 1000)
+compare_momentum(0.001, 0.005 , 1000)
 ols_errors()
